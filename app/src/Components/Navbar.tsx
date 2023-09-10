@@ -4,18 +4,6 @@ import userIcon from '../assets/user-mobile.png'
 import {  InputLabel } from '@mui/material'
 import Sidebar from './Sidebar';
 
-const navbar = document.querySelector('.navbar');
-const sidebar = document.querySelector('.sidebar');
-
-
-const sidebarCoords = sidebar?.getBoundingClientRect();
-
-const coords  = {
-    width: sidebarCoords?.width,
-    height: sidebarCoords?.height,
-    x: sidebarCoords?.x
-}
-
 //console.log(sidebarCoords);
 
 const Navbar = () => {
@@ -39,7 +27,7 @@ const Navbar = () => {
         
     </div>
    
-    <div className='absolute top-0  right-0'>
+    <div className='absolute top-0 right-0'>
        <Sidebar />
     </div>
     

@@ -8,6 +8,7 @@ import { uid } from 'uid'
 import { useAppDispatch, useAppSelector } from '@/States/hook'
 import { clicked, notClicked } from '@/States/Slice'
 import Diary from '@/Contents/Diary'
+import { putDiaryuid } from '@/States/diarySlice'
 
 
 
@@ -29,6 +30,8 @@ const Sidebar = () => {
   
    const clickedDiary = useAppSelector((state) => state.diary.value);
    const dispatch = useAppDispatch();
+   const getUidData = useAppSelector((state) => state.getDiary.value);
+   const getuidDiaryDispatch = useAppDispatch()
    
    const authId = auth.currentUser?.uid;
    const navigate = useNavigate();
@@ -48,7 +51,7 @@ const Sidebar = () => {
             setData(prevVal => [...prevVal,datas]);
           })
 
-          console.log(dataVal); 
+          //console.log(data); 
         }
       })
      }
@@ -56,24 +59,28 @@ const Sidebar = () => {
     }, [])
 
     function handleClickMenu(e: React.MouseEvent, id: number) {
-       e.stopPropagation()
+       e.stopPropagation();
        // Toggle the clicked item's menu visibility
        setClickMenu((prevId) => (prevId === id ? null : id));
     }
 
-    function ContentView (id: number) {
+    function ContentView (id: number, uid: string | null) {
       setContentClicked((prev) => (prev === id ? null : id));  // if clicked the same object then the value is still null 
-      console.log("Content is "+contentClicked) 
+     // console.log("Content is "+contentClicked) 
 
       if(contentClicked !== null) {
         dispatch(clicked());
-        console.log("clicked menu " + clickedDiary);
+        getuidDiaryDispatch(putDiaryuid(uid)); //for getting the specific uid for viewing diary 
+       // console.log("clicked menu " + clickedDiary);
+       //console.log(getUidData);
       }
       else {
         dispatch(notClicked())
       }
     }
-    console.log("Content is "+contentClicked) 
+    //console.log("Content is "+contentClicked) 
+
+   // console.log(authId)
 
     
 
@@ -111,7 +118,7 @@ const Sidebar = () => {
               <div className='min-w-auto flex flex-col gap-[25px] items-start'> 
                 {data.map((item: dataTypes, id: number) => (
                   //if different user then it will not render
-                   <div key={id} onClick={() => ContentView(id)} className={`font-kaisei h-[73px] sm:px-[12px] lg:px-[19px] py-[11px] bg-[#F4E1C3] hover:scale-105 transition-transform ease-in-out duration-150 cursor-pointer shadow-[#07B42] rounded-[25px] shadow-lg justify-start text-center items-center ${clickMenu ? 'sm:gap-[50px] lg:gap-[90px]' : 'sm:gap-[50px] lg:gap-[90px]'} flex`}>
+                  authId === item.UserId && <div key={id} onClick={() => ContentView(id,item.uid)} className={`font-kaisei h-[73px] sm:px-[12px] lg:px-[19px] py-[11px] bg-[#F4E1C3] hover:scale-105 transition-transform ease-in-out duration-150 cursor-pointer shadow-[#07B42] rounded-[25px] shadow-lg justify-start text-center items-center ${clickMenu ? 'sm:gap-[50px] lg:gap-[90px]' : 'sm:gap-[50px] lg:gap-[90px]'} flex`}>
                      <div className="flex-col justify-center items-start gap-[5px] flex">
                          <div className="text-center text-yellow-900 text-[14px] sm:text-[16px] lg:text-lg font-normal">{item.title}</div>
                          <div className="text-center text-stone-500 text-sm sm:text-[12px] lg:text-[md] font-normal">{item.date}</div>
@@ -131,7 +138,7 @@ const Sidebar = () => {
               </div>
           </div>
           
-          <h1>{clickedDiary}</h1>
+        
         </div>
     </div> 
     

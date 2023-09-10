@@ -8,6 +8,8 @@ const initialState: stateType = {
     value: false
 } 
 
+
+
 export const ReducerSlice = createSlice({
     name: 'reducer',
     initialState,
@@ -17,9 +19,7 @@ export const ReducerSlice = createSlice({
         },
         notClicked: (state) => {
             state.value = false;
-        }
-       
-        
+        }  
     }
 })
 

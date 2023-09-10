@@ -3,6 +3,7 @@ import Navbar from "./Components/Navbar";
 import { useAppDispatch, useAppSelector } from "./States/hook"
 import CreatePost from "./Contents/CreatePost";
 import Diary from "./Contents/Diary";
+import ViewDiary from "./Contents/ViewDiary";
 
 
 function App() {
@@ -14,8 +15,8 @@ return (
         </div>
 
       {/* RENDER FOLLOWS*/ }
-      <div className="w-full flex h-screen items-center justify-center">
-          <CreatePost />  
+      <div className="w-full flex  h-screen  items-center justify-center">
+         <Diary />
       </div>
     </div>
   )

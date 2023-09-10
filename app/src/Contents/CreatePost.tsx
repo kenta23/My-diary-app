@@ -34,7 +34,7 @@ const CreatePost = () => {
   //get the user auth id 
   const authId = auth.currentUser?.uid;
 
-  const handleEmojiClick = (emoji: string) => {
+   const handleEmojiClick = (emoji: string) => {
      //add the emoji to the input state
      setInput(prev => ({
       ...prev,
@@ -100,7 +100,7 @@ const CreatePost = () => {
 if(clicked) { 
  contentPost = ( 
  
- <form onSubmit={submitInput} className='mx-[40px] font-kaisei border border-[#745E3D] md:mr-[190px] lg:mr-[335px] xl:mr-[360px] w-auto sm:w-[400px] md:w-[550px] lg:w-[700px] xl:w-[850px] h-[495px] '>
+ <form onSubmit={submitInput} className='mx-[40px] font-kaisei border border-[#745E3D] md:mr-[190px] lg:mr-[335px] xl:mr-[360px] w-max sm:w-[400px] md:w-[550px] lg:w-[700px] xl:w-[850px] h-[495px] '>
   <div className='title flex gap-2 py-2 font-bold border-b border-[#745E3D] w-full h-[55px] items-center justify-center'>  
      <div className='relative flex items-center'>
         <input 
@@ -150,8 +150,8 @@ if(clicked) {
  
   return (
    <div className=''>
-     <div className='absolute bottom-6 left-[40%] h-screen'>
-       {visible && <h1 className='duration-150 font-inter text-[12px] md:text-[14px] bg-[#17140F] w-fit text-white py-2 rounded-[20px] px-3 bottom-5 text-center'>{status}</h1>}
+     <div className='absolute top-[120px] left-[35%] h-screen'>
+       {visible && <h1 className='duration-150 font-inter text-[12px] md:text-[14px] bg-[#353027] w-fit text-white py-2 rounded-[20px] px-3 bottom-5 text-center'>{status}</h1>}
      </div> 
      {contentPost}
    </div> 

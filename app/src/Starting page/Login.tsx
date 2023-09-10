@@ -19,6 +19,8 @@ const Login = () => {
         password: '',
     })
     const navigate = useNavigate();
+    const [visible, setVisible] = useState<boolean>(false);
+    const [status, setStatus] = useState('');
 
     //check if user is already logged in then the page will redirect to the main page 
     useEffect(() => {
@@ -37,9 +39,23 @@ const Login = () => {
         await signInWithEmailAndPassword(auth, email, password);
         console.log('Sign in successfully');
 
-        navigate('/');
+       
+        setVisible(true);
+        setStatus('Login Successful');
+
+        setTimeout(() => {
+            setVisible(false);
+            navigate('/');
+        }, 1000);
 
       } catch (error) {
+        setVisible(true);
+        setStatus('Something went wrong');
+
+        setTimeout(() => {
+            setVisible(false);
+        }, 1000);
+
         console.log(error);
       }        
     }
@@ -105,6 +121,7 @@ const Login = () => {
 
                     <h1 className='md:text-[22px] mb-[50px] font-kaisei'>Don't have an account? <NavLink to={'/register'} className='text-[#E57E1E] font-semibold cursor-pointer'>Sign up</NavLink></h1>
                     <button onClick={() => auth.signOut()}>logout</button>
+                    {visible && <h1 className='duration-150 font-inter text-[12px] md:text-[14px] bg-[#353027] w-fit text-white py-2 rounded-[20px] px-3 bottom-5 text-center'>{status}</h1>}
                 </div>
             </div>
         </div>

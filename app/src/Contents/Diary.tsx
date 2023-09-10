@@ -1,5 +1,7 @@
 import { useAppDispatch, useAppSelector } from '@/States/hook';
 import React from 'react'
+import CreatePost from './CreatePost';
+import ViewDiary from './ViewDiary';
 
 const Diary = () => {
     const clicked = useAppSelector(state => state.diary.value);
@@ -10,23 +12,22 @@ const Diary = () => {
     if(clicked) {
         content = (
             <div>
-                <h1>Hello content</h1>
+                <ViewDiary />
             </div>
         )
     }
     else {
         content = (
             <div>
-                <h1>Create new</h1>
+                <CreatePost />
             </div>
         )
     }
 
   return (
-    <div>
+    <div className=''>
           {content}
     </div>
-   
   )
 }
 
