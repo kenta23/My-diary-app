@@ -22,6 +22,7 @@ const Login = () => {
     const [visible, setVisible] = useState<boolean>(false);
     const [status, setStatus] = useState('');
 
+
     //check if user is already logged in then the page will redirect to the main page 
     useEffect(() => {
         auth.onAuthStateChanged((user) => {

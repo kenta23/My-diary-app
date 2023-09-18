@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from "./States/hook"
 import CreatePost from "./Contents/CreatePost";
 import Diary from "./Contents/Diary";
 import ViewDiary from "./Contents/ViewDiary";
+import Login from "./Starting page/Login";
 
 
 function App() {

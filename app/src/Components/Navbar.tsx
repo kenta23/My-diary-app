@@ -1,33 +1,45 @@
-import React from 'react'
+import React, { useState } from 'react'
 import menubar from '../assets/Menu bar.png'
 import userIcon from '../assets/user-mobile.png'
 import {  InputLabel } from '@mui/material'
 import Sidebar from './Sidebar';
+import { useAppDispatch, useAppSelector } from '@/States/hook';
+import { open } from '@/States/menuSlice';
+import { useNavigate } from 'react-router-dom';
 
 //console.log(sidebarCoords);
 
+
+
+
 const Navbar = () => {
+  const menuOpener = useAppSelector(state => state.getMenuOpener);
+  const menuDispatch = useAppDispatch();
+
+  //navigation
+  const navigate = useNavigate()
+
   return (
    <div>
-    <div className={`navbar bg-secondary md:me-[190px] lg:me-[335px] xl:me-[360px] py-[20px] md:py-[25px] relative`}>
+    <div className={`navbar bg-secondary md:me-0 lg:me-[335px] xl:me-[360px] py-[20px] md:py-[25px] relative`}>
        <div className='flex flex-row items-center justify-between px-[22px] h-auto'>
-        <div className='menubar cursor-pointer visible md:invisible'>
-              <img src={menubar} alt="" className='w-[21px] h-auto'/>
+        <div className='menubar cursor-pointer visible lg:invisible'>
+              <img src={menubar} alt="" className='w-[21px] h-auto' onClick={() => menuDispatch(open())}/>
         </div> 
       
         <div>
              <h1 className='text-center text-logo font-inika md:text-[30px] lg:text-[35px] sm:text-[28px] text-[25px] font-[700]'> MyDiary</h1>
         </div> 
 
-        <div className='profileicon cursor-pointer visible md:invisible'>
-           <img src={userIcon} alt="" className='w-[35px] h-auto'/>
+        <div className='profileicon cursor-pointer visible lg:invisible'>
+           <img src={userIcon} alt="" className='w-[35px] h-auto cursor-pointer' onClick={() => navigate('/Profile')}/>
         </div>
           
       </div> 
         
     </div>
    
-    <div className='absolute top-0 right-0'>
+    <div className={`absolute ${menuOpener.value ? 'block' : 'hidden'} transition-all duration-150 ease-in-out top-0 lg:block lg:right-0`}>
        <Sidebar />
     </div>
     

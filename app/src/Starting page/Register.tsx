@@ -12,7 +12,7 @@ import { useNavigate, Navigate } from 'react-router-dom'
 import { addDoc, collection, doc } from 'firebase/firestore'
 import { Info } from 'lucide-react'
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
-
+import axios from 'axios'
 
 const formStyles: CSSProperties = {
   display: 'grid',
@@ -56,7 +56,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [visible, setVisible] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
-  const [fileUpload, setFileUpload] = useState<FileList | null>(null)
+  const [fileUpload, setFileUpload] = useState<Blob | Uint8Array | ArrayBuffer | null>(null);
 
   const navigate = useNavigate();
 
@@ -124,6 +124,14 @@ function logout() { //LOGOUT BUTTON
   auth.signOut();
 }
 
+ //ADD IMAGE URL TO JSON FILE 
+
+ const imageUpload = () => {
+    //first locate the json file we want to upload the image url after creating account
+    
+ }
+
+ imageUpload();
 
 const createAccount = async () => {
    try {
@@ -131,7 +139,7 @@ const createAccount = async () => {
       console.log("Account created", userData.email, userData.password);
 
        // Upload the profile picture to Firebase Storage
-        const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${fileUpload.name}`);
+        const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${fileUpload?.name}`);
         await uploadBytes(storageRef, fileUpload); // Assuming fileUpload is a Blob or File object
    
       // Get the download URL of the uploaded image
@@ -149,10 +157,30 @@ const createAccount = async () => {
         UserId: auth.currentUser?.uid.toString(),
         ProfileDisplay: downloadURL,
       })
- }
+  
+      const uploadImageNameandUid = {
+        imageName: fileUpload,
+        uid: auth.currentUser?.uid
+
+      }
+
+      //ADD DATA TO THE JSON FILE
+        let newData = {
+          imageUrl: fileUpload,
+          uid: auth.currentUser?.uid
+        }
+        axios.post('/api/data', newData)
+          .then(() => {
+          
+            newData = {imageUrl: null, uid: ''}// Clear the input fields
+          })
+          .catch((error) => {
+            console.error('Error adding data:', error);
+        });
+    }
 
    catch(err) {
-     if(err.code === 'auth/email-already-in-use') {
+     if(err === 'auth/email-already-in-use') {
        setStatus("Account already exists");
        setVisible(true);
        return;
@@ -163,17 +191,17 @@ const createAccount = async () => {
    }
 }
 
-const uploadFile = async () => {
+/*const uploadFile = async () => {
   //reference 
   try {
-    const pictureRef = ref(store, `Users/${userData.firstname}/${fileUpload?.name}`);
+    const pictureRef = ref(store, `Users/${userData.firstname}/${fileUpload}`)
     await uploadBytes(pictureRef, fileUpload);
     console.log("Uploaded file successfully");
   }
   catch(err) {
     console.log(err);
   }
-}
+} */
 
 
   return (

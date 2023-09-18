@@ -13,7 +13,8 @@ import { auth } from './Firebase/firebase.ts'
 import SucessfulRegistered from './Starting page/SucessfulRegistered.tsx'
 import PrivateRoutes from './PrivateRoute/PrivateRoutes.tsx'
 import SecureRoute from './PrivateRoute/SecureRoute.tsx'
-import Content from './Components/Content.tsx'
+import Profile from './Components/Profile.tsx'
+
 
 
 
@@ -25,11 +26,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                <Route element={<PrivateRoutes />}> {/*it only renders when the user account existed */}
                   <Route path='/' element={<App />}/>
                   <Route path="/sucessful" element={<SucessfulRegistered/>} />
-                  <Route path='/post' element={<Content />}/>
                </Route>
   
                 <Route path='/register' element={<Register />}/>
                 <Route path='/login' element={<Login />}/>
+                <Route path='/Profile' element={<Profile />} />
             </Routes>
        </BrowserRouter>
     </Provider> 

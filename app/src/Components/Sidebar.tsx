@@ -1,16 +1,20 @@
 import React, {useEffect, useState } from 'react'
 import { AlignRight, MinusCircle, PenSquare, X } from 'lucide-react'
 import user from '../assets/user.png'
-import { auth, database } from '@/Firebase/firebase'
+import { auth, database, store, db } from '@/Firebase/firebase'
 import { ref, onValue, remove } from 'firebase/database'
 import { useNavigate } from 'react-router-dom'
 import { uid } from 'uid'
 import { useAppDispatch, useAppSelector } from '@/States/hook'
 import { clicked, notClicked } from '@/States/Slice'
-import Diary from '@/Contents/Diary'
 import { putDiaryuid } from '@/States/diarySlice'
-
-
+import { close, open } from '@/States/menuSlice'
+import { saveTitleAndContext } from '@/States/savingInput'
+import { collection, getDocs } from 'firebase/firestore'
+import { ref as storageRef } from 'firebase/storage'
+import { getDownloadURL } from 'firebase/storage'
+import ImageList from '../utils/ImageFiles.json'
+import { addUrl } from '@/States/imageUrl'
 
 type dataTypes = {  
     UserId: string | null,
@@ -27,18 +31,31 @@ const Sidebar = () => {
    const [contentClicked, setContentClicked] = useState<number | null>(null);
    const [data, setData] = useState([]);
    const [deleted, setDeleted] = useState(false);
+   const [name, setName] = useState<string | null>('');
   
-   const clickedDiary = useAppSelector((state) => state.diary.value);
-   const dispatch = useAppDispatch();
-   const getUidData = useAppSelector((state) => state.getDiary.value);
-   const getuidDiaryDispatch = useAppDispatch()
+   
+  
+  
+ 
    
    const authId = auth.currentUser?.uid;
    const navigate = useNavigate();
    const uuid = uid();
 
-   useEffect(() => {
+   //reducers
+   const dispatch = useAppDispatch();
 
+   const menuOpener = useAppSelector(state => state.getMenuOpener);
+   const clickedDiary = useAppSelector((state) => state.diary.value);
+   const getUidData = useAppSelector((state) => state.getDiary.value);
+   const saveContext = useAppSelector(state => state.getInput);
+   const imageUrl = useAppSelector((state) => state.getImageUrl);
+   
+
+
+   
+
+   useEffect(() => {
     const readDiary = () => {
       const diaryRef = ref(database, `Diary/`);
   
@@ -58,32 +75,72 @@ const Sidebar = () => {
      readDiary();
     }, [])
 
+    useEffect(() => {
+       const nameReader = async () => {
+        const querySnapshot = await getDocs(collection(db, "Users"));
+        querySnapshot.forEach((doc) => {
+         auth.currentUser?.uid === doc.data().UserId ? setName(doc.data().FirstName+ " "+doc.data().LastName) : null; //read only the name of the user who logs in
+        })
+       }
+
+       nameReader();
+
+       async function callFunction () {
+        //const url = await getPostImgSrc(post.img)
+       // setImageUrl(url)
+     }
+     callFunction();
+    }, [])
+
+
+    //render Image uploaded from firebase Storage
+    const getPostImgSrc = async () => {
+      //... firebase code here 
+      const renderImage = ImageList.find(image => image.uid === authId); //return only image that has same uid as the current user
+
+      const imgRef = storageRef(store, `Users/${auth.currentUser?.uid}/${renderImage?.imageName}`);
+      const res = await getDownloadURL(imgRef);
+      return res;
+    }
+
+    useEffect(() => {
+      async function callFunction () {
+        const url = await getPostImgSrc()
+        dispatch(addUrl(url));
+     }
+     callFunction();
+    }, [])
+
+    console.log(imageUrl);
+   // console.log("My name is " +name)
+   // console.log("My uid is " +auth.currentUser?.uid);
+
     function handleClickMenu(e: React.MouseEvent, id: number) {
        e.stopPropagation();
        // Toggle the clicked item's menu visibility
        setClickMenu((prevId) => (prevId === id ? null : id));
     }
 
-    function ContentView (id: number, uid: string | null) {
+    function ContentView (id: number, uid: string | null, titleP: string | null, diaryP: string | null) {
       setContentClicked((prev) => (prev === id ? null : id));  // if clicked the same object then the value is still null 
      // console.log("Content is "+contentClicked) 
 
-      if(contentClicked !== null) {
+      if(contentClicked) {
         dispatch(clicked());
-        getuidDiaryDispatch(putDiaryuid(uid)); //for getting the specific uid for viewing diary 
+        dispatch(putDiaryuid(uid)); //for getting the specific uid for viewing diary 
        // console.log("clicked menu " + clickedDiary);
        //console.log(getUidData);
+      dispatch(saveTitleAndContext({title: titleP, diary: diaryP}));
+       
       }
-      else {
-        dispatch(notClicked())
-      }
+      
     }
     //console.log("Content is "+contentClicked) 
 
    // console.log(authId)
 
     
-
+ 
     //REMOVE ITEMS 
  const removeDiary = async(userId: string | null) => {
     const itemRef = ref(database, `Diary/${userId}`) // Replace with your data path
@@ -98,29 +155,29 @@ const Sidebar = () => {
     }
   }
 
-  function handleEdit() {
-    
-  }
-
+  
+  //console.log(saveContext)
   return (
   <>
-    <div className='bg-primary sidebar min-w-[190px] lg:w-[335px] xl:w-[360px] h-[2000px] hidden md:block relative top-0'>
+    <div className='bg-primary sidebar z-10  min-w-[210px] lg:w-[335px] xl:w-[360px] h-[2000px] block relative top-0'>
       <div className='flex flex-col gap-4 justify-between items-end '>  
-        <div className='mt-[33px] float-right mr-[23px] h-auto w-auto'>
-              <img src={user} alt="" className='w-[48px] cursor-pointer'/>
+        <div className='mt-[33px] flex items-center justify-around gap-[90px] lg:float-right mr-[23px] h-auto  '>
+              <X color='white' size={34} className='cursor-pointer lg:hidden block' onClick={() => dispatch(open())}/>
+              <img src={imageUrl.value ? imageUrl.value :  user} alt="" className='w-[48px] cursor-pointer' onClick={() => navigate('/Profile')}/>
         </div>
 
+      
         <div className='w-full '>
               <div className='mt-[50px] gap-6 flex flex-col justify-center items-center'>
-                  <h1 className='text-center text-white font-inika sm:text-[25px] lg:text-[30px]'>{auth.currentUser?.email} Diary</h1>
+                  <h1 className='text-center text-white font-inika sm:text-[25px] lg:text-[30px]'>{name} Diary</h1>
 
                   {/**READ ALL THE DIARIES HERE*/}
               <div className='min-w-auto flex flex-col gap-[25px] items-start'> 
                 {data.map((item: dataTypes, id: number) => (
                   //if different user then it will not render
-                  authId === item.UserId && <div key={id} onClick={() => ContentView(id,item.uid)} className={`font-kaisei h-[73px] sm:px-[12px] lg:px-[19px] py-[11px] bg-[#F4E1C3] hover:scale-105 transition-transform ease-in-out duration-150 cursor-pointer shadow-[#07B42] rounded-[25px] shadow-lg justify-start text-center items-center ${clickMenu ? 'sm:gap-[50px] lg:gap-[90px]' : 'sm:gap-[50px] lg:gap-[90px]'} flex`}>
+                  authId === item.UserId && <div key={id} onClick={() => ContentView(id,item.uid, item.title, item.diary)} className={`font-kaisei h-[73px] sm:px-[12px] lg:px-[19px] py-[11px] bg-[#F4E1C3] hover:scale-105 transition-transform ease-in-out duration-150 cursor-pointer shadow-[#07B42] rounded-[25px] shadow-lg justify-start text-center items-center ${clickMenu ? 'sm:gap-[50px] lg:gap-[90px]' : 'sm:gap-[50px] lg:gap-[90px]'} flex`}>
                      <div className="flex-col justify-center items-start gap-[5px] flex">
-                         <div className="text-center text-yellow-900 text-[14px] sm:text-[16px] lg:text-lg font-normal">{item.title}</div>
+                         <div className="text-center text-yellow-900 text-[14px] sm:text-[16px] lg:text-lg font-normal" >{item.title}</div>
                          <div className="text-center text-stone-500 text-sm sm:text-[12px] lg:text-[md] font-normal">{item.date}</div>
                       </div>
 
@@ -137,8 +194,6 @@ const Sidebar = () => {
                   
               </div>
           </div>
-          
-        
         </div>
     </div> 
     

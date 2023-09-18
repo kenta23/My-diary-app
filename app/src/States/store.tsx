@@ -1,12 +1,21 @@
-import { configureStore } from '@reduxjs/toolkit'
-import diary from './Slice'
-import getDiary from './diarySlice'
+import { configureStore } from '@reduxjs/toolkit';
+import diary from './Slice';
+import getDiary from './diarySlice';
+import getMenuOpener from './menuSlice';
+import getStatus from './statusSlice';
+import getInput from './savingInput';
+import getImageUrl from './imageUrl';
+
 
 export const store =  configureStore({
     reducer:  
        {
          diary, 
-         getDiary
+         getDiary,
+         getMenuOpener,
+         getStatus,
+         getInput,
+         getImageUrl
       }
 })
 

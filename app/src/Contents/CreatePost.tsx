@@ -1,14 +1,15 @@
 import React, { useState } from 'react'
-import { PenSquare, Pencil, Pointer, RotateCcw, Send, Smile } from 'lucide-react'
+import { PenSquare, Pencil, RotateCcw, Send, Smile } from 'lucide-react'
 import  noProfile  from '../assets/user-orange.png'
 import  { EmojiStyle } from 'emoji-picker-react';
 import Picker from 'emoji-picker-react';
-import { getDatabase, ref, set,  push } from 'firebase/database';
+import { getDatabase, ref, set, } from 'firebase/database';
 import { auth } from '@/Firebase/firebase';
 import date from 'date-and-time'
 import { useAppDispatch, useAppSelector } from '@/States/hook';
-import { useDispatch } from 'react-redux';
 import { uid } from 'uid';
+import { clearStatus, updateStatus } from '@/States/statusSlice';
+import { saveTitleAndContext } from '@/States/savingInput';
 
 type inpuTypes = {
   post: string,
@@ -27,13 +28,18 @@ const CreatePost = () => {
   const limitTitle = 18; //length of title characters
   const uuid = uid();
 
-  const [status, setStatus] = useState<string>('');
+  //const [status, setStatus] = useState<string>('');
   const [visible, setVisible] = useState<boolean>(false);
+
+  //reducers 
+  const status = useAppSelector(state =>  state.getStatus);
+  const statusDispatch = useAppDispatch();
+  const saveDiary = useAppSelector(state => state.getInput);
+  const saveDiaryDispatch = useAppDispatch();
 
   let contentPost;
   //get the user auth id 
-  const authId = auth.currentUser?.uid;
-
+  
    const handleEmojiClick = (emoji: string) => {
      //add the emoji to the input state
      setInput(prev => ({
@@ -53,54 +59,71 @@ const CreatePost = () => {
     }
   }
 
+
+
   const submitInput = async (event: { preventDefault: () => void; }) => {
       event.preventDefault();
       //save the input to the database 
       const database = getDatabase();
       const now = new Date();
       const timestamp = date.format(now, 'YYYY, MMM DD ddd');
-      
-    try {    
-       const newDiaryRef = ref(database, `Diary/${uuid}`);
-       
-       await set(newDiaryRef, {
-        UserId: auth.currentUser?.uid,
-        date: timestamp,
-        title: input.title,
-        diary: input.post,
-        uid: uuid
-     });
-      
-       setVisible(true);
 
-       setTimeout(() => {
+      setVisible(true);
+      setTimeout(() => {
         setVisible(false);
-       }, 1000);
+        statusDispatch(clearStatus());
+      }, 1000)
 
-       console.log("Successfully Posted");
-       setStatus("Successfully Posted");
-
-       setInput({
-         post: '',
-         title: '',
-       });
+      if(input.title === '') {
+        statusDispatch(updateStatus('Empty Title'));
+        return; 
       }
-      catch (error) {
-        console.log(error);
-        setVisible(true);
 
-        setTimeout(() => {
-           setVisible(false);
-        }, 1000);
-         setStatus("Something went wrong");
+      else if (input.post === '') {
+        statusDispatch(updateStatus("Empty Diary"));
+        return; 
+      }
+     
+      else {
+        try {    
+          const newDiaryRef = ref(database, `Diary/${uuid}`);
+          
+          await set(newDiaryRef, {
+           UserId: auth.currentUser?.uid,
+           date: timestamp,
+           title: input.title,
+           diary: input.post,
+           uid: uuid
+        });
+         
+          console.log("Successfully Posted");
+          statusDispatch(updateStatus("Successfully Posted"));
+         
+   
+          setInput({
+            post: '',
+            title: '',
+          });
+         }
+         catch (error) {
+           console.log(error);
+           setVisible(true);
+   
+           setTimeout(() => {
+              setVisible(false);
+           }, 1000);
+            statusDispatch(updateStatus("Something went wrong"));
+         }
       }
   }
+
+  console.log(saveDiary.value);
 
  
 if(clicked) { 
  contentPost = ( 
  
- <form onSubmit={submitInput} className='mx-[40px] font-kaisei border border-[#745E3D] md:mr-[190px] lg:mr-[335px] xl:mr-[360px] w-max sm:w-[400px] md:w-[550px] lg:w-[700px] xl:w-[850px] h-[495px] '>
+ <form onSubmit={submitInput} className='mx-0 font-kaisei border border-[#745E3D] md:mr-0 lg:mr-[335px] xl:mr-[360px] w-max sm:w-[450px] md:w-[550px] lg:w-[700px] xl:w-[850px] h-[495px] '>
   <div className='title flex gap-2 py-2 font-bold border-b border-[#745E3D] w-full h-[55px] items-center justify-center'>  
      <div className='relative flex items-center'>
         <input 
@@ -123,7 +146,7 @@ if(clicked) {
             value={input.post} 
             onChange={(e) => setInput(prev => ({...prev, post: e.target.value}))} 
             placeholder='Your thoughts....'  
-            className=' flex-1 bg-[#f0e7d9] placeholder-[#776E57] lg:text-[20px] w-auto sm:w-[200px] indent-3 md:w-[260px] lg:w-[400px] xl:w-[700px] h-[360px] resize-none outline-none p-2'>          
+            className=' flex-1 bg-[#f0e7d9] placeholder-[#776E57] lg:text-[20px] w-[190px] sm:w-[270px] indent-3 md:w-[380px] lg:w-[500px] xl:w-[700px] h-[360px] resize-none outline-none p-2'>          
         </textarea>
      </div>
 
@@ -141,7 +164,7 @@ if(clicked) {
  </form> ) } 
  else {
   contentPost = (
-   <div className='mx-[40px] font-kaisei border border-[#745E3D] flex flex-col items-center justify-center md:mr-[190px] lg:mr-[335px] xl:mr-[360px] w-[250px] sm:w-[400px] md:w-[550px] lg:w-[700px] xl:w-[850px] h-[495px]'>
+   <div className='mx-0 font-kaisei border border-[#745E3D] flex flex-col items-center justify-center md:mr-0 lg:mr-[335px] xl:mr-[360px] w-[250px] sm:w-[450px] md:w-[550px] lg:w-[700px] xl:w-[850px] h-[495px]'>
      <div className='flex flex-row gap-2 items-center cursor-pointer' onClick={() => setClicked(!clicked)}>
        <PenSquare color='#745E3D' className='lg:w-[29px] h-auto'/><span className='text-[#745E3D] font-medium text-[22px] md:text-[30px] lg:text-[35px]'>Create New</span>
      </div>
@@ -151,7 +174,7 @@ if(clicked) {
   return (
    <div className=''>
      <div className='absolute top-[120px] left-[35%] h-screen'>
-       {visible && <h1 className='duration-150 font-inter text-[12px] md:text-[14px] bg-[#353027] w-fit text-white py-2 rounded-[20px] px-3 bottom-5 text-center'>{status}</h1>}
+       {visible && <h1 className='duration-150 font-inter text-[12px] md:text-[14px] bg-[#353027] w-fit text-white py-2 rounded-[20px] px-3 bottom-5 text-center'>{status.value}</h1>}
      </div> 
      {contentPost}
    </div> 
