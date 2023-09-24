@@ -13,8 +13,8 @@ import { saveTitleAndContext } from '@/States/savingInput'
 import { collection, getDocs } from 'firebase/firestore'
 import { ref as storageRef } from 'firebase/storage'
 import { getDownloadURL } from 'firebase/storage'
-import ImageList from '../utils/ImageFiles.json'
 import { addUrl } from '@/States/imageUrl'
+import axios from 'axios'
 
 type dataTypes = {  
     UserId: string | null,
@@ -22,6 +22,11 @@ type dataTypes = {
     diary: string | null,
     date: string | null,
     uid: string | null,
+}
+
+type imageUrlType = {
+  imageUrl?: string | null,
+  uid?: string | null,
 }
 
 //export const ContentValues = createContext<string | null>(null);
@@ -32,7 +37,7 @@ const Sidebar = () => {
    const [data, setData] = useState([]);
    const [deleted, setDeleted] = useState(false);
    const [name, setName] = useState<string | null>('');
-  
+   const [collectionImage, setCollectionImage] = useState([]);
    
   
   
@@ -94,21 +99,39 @@ const Sidebar = () => {
 
 
     //render Image uploaded from firebase Storage
-    const getPostImgSrc = async () => {
-      //... firebase code here 
-      const renderImage = ImageList.find(image => image.uid === authId); //return only image that has same uid as the current user
+  const getPostImgSrc = async () => {
+      axios.get('http://localhost:3000/api/images')
+      .then((response) => {
+      const jsonData = response.data;
+       // Use jsonData in your frontend as needed
+       console.log(jsonData);
+       //store imageurl objects to the state
+       setCollectionImage(jsonData);
+       console.log(collectionImage);
+     })
+      .catch((error) => {
+       console.error('Error fetching data:', error);
+     });
 
-      const imgRef = storageRef(store, `Users/${auth.currentUser?.uid}/${renderImage?.imageName}`);
-      const res = await getDownloadURL(imgRef);
-      return res;
-    }
+
+      //... firebase code here 
+      const renderImage:imageUrlType[] = collectionImage.filter((image: imageUrlType) => image.uid === authId); //return only image that has same uid as the current user
+      //console.log('rendered ', renderImage);
+
+      if (renderImage.length > 0) {
+        console.log('rendered ', renderImage[0].imageUrl);
+        const imgRef = storageRef(store, `${renderImage[0].imageUrl}`);
+        await getDownloadURL(imgRef);
+        dispatch(addUrl(renderImage[0].imageUrl));
+
+      } else {
+        console.log('No matching image found for the current user.');
+      }
+     
+  }
 
     useEffect(() => {
-      async function callFunction () {
-        const url = await getPostImgSrc()
-        dispatch(addUrl(url));
-     }
-     callFunction();
+       getPostImgSrc();
     }, [])
 
     console.log(imageUrl);
@@ -152,7 +175,7 @@ const Sidebar = () => {
     }
     catch (err) {
       console.log(err);
-    }
+    } 
   }
 
   
@@ -165,7 +188,7 @@ const Sidebar = () => {
               <X color='white' size={34} className='cursor-pointer lg:hidden block' onClick={() => dispatch(open())}/>
               <img src={imageUrl.value ? imageUrl.value :  user} alt="" className='w-[48px] cursor-pointer' onClick={() => navigate('/Profile')}/>
         </div>
-
+ 
       
         <div className='w-full '>
               <div className='mt-[50px] gap-6 flex flex-col justify-center items-center'>

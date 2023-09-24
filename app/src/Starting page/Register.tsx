@@ -8,11 +8,12 @@ import book from '../assets/booklet.png'
 import { auth, db, store} from '@/Firebase/firebase'
 import { createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth'
 import { error } from 'console'
-import { useNavigate, Navigate } from 'react-router-dom'
-import { addDoc, collection, doc } from 'firebase/firestore'
-import { Info } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { addDoc, collection } from 'firebase/firestore'
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
 import axios from 'axios'
+import { useAppDispatch } from '@/States/hook'
+import { addUrl } from '@/States/imageUrl'
 
 const formStyles: CSSProperties = {
   display: 'grid',
@@ -59,6 +60,7 @@ const Register = () => {
   const [fileUpload, setFileUpload] = useState<Blob | Uint8Array | ArrayBuffer | null>(null);
 
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {name, value} = e.target
@@ -122,27 +124,48 @@ const saveData = async (e: React.FormEvent <HTMLButtonElement>) => {
 
 function logout() { //LOGOUT BUTTON
   auth.signOut();
+  dispatch(addUrl(''));
 }
 
  //ADD IMAGE URL TO JSON FILE 
+ //POST DATA
+ const uploadImage = async () => {
+  try {
+    // Upload the profile picture to Firebase Storage
+    const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${fileUpload?.name}`);
+    await uploadBytes(storageRef, fileUpload); // Assuming fileUpload is a Blob or File object
 
- const imageUpload = () => {
-    //first locate the json file we want to upload the image url after creating account
+    // Get the download URL of the uploaded image
+    const downloadURL = await getDownloadURL(storageRef);
+
+    //add the download url to the imageUrl state reducer
+    dispatch(addUrl(downloadURL));
+
+    const userDataToSend = {
+      imageUrl: downloadURL, // Include the image URL
+      uid: auth.currentUser?.uid,
+    };
+
+    // Send this data to the server using a separate API request
+    await axios.post('http://localhost:3000/api/images', userDataToSend);
+    console.log('image sent to server ');
+   
+  } catch (err) {
     
- }
+    console.error('Image upload or data sending failed:', err);
+  }
+};
 
- imageUpload();
 
 const createAccount = async () => {
    try {
       await createUserWithEmailAndPassword(auth, userData.email, userData.password);
       console.log("Account created", userData.email, userData.password);
 
-       // Upload the profile picture to Firebase Storage
+        // Upload the profile picture to Firebase Storage
         const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${fileUpload?.name}`);
-        await uploadBytes(storageRef, fileUpload); // Assuming fileUpload is a Blob or File object
-   
-      // Get the download URL of the uploaded image
+       await uploadBytes(storageRef, fileUpload); // Assuming fileUpload is a Blob or File object
+     // Get the download URL of the uploaded image
       const downloadURL = await getDownloadURL(storageRef);
      
 
@@ -158,26 +181,10 @@ const createAccount = async () => {
         ProfileDisplay: downloadURL,
       })
   
-      const uploadImageNameandUid = {
-        imageName: fileUpload,
-        uid: auth.currentUser?.uid
-
-      }
-
+      
       //ADD DATA TO THE JSON FILE
-        let newData = {
-          imageUrl: fileUpload,
-          uid: auth.currentUser?.uid
-        }
-        axios.post('/api/data', newData)
-          .then(() => {
-          
-            newData = {imageUrl: null, uid: ''}// Clear the input fields
-          })
-          .catch((error) => {
-            console.error('Error adding data:', error);
-        });
-    }
+      await uploadImage(); 
+    } 
 
    catch(err) {
      if(err === 'auth/email-already-in-use') {
