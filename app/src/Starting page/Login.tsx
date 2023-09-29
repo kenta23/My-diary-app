@@ -3,9 +3,12 @@ import bg from '../assets/undraw_login.png'
 import book from '../assets/Book.png'
 import TextField from '@mui/material/TextField'
 import { NavLink } from 'react-router-dom'
-import { auth } from '@/Firebase/firebase'
+import { auth, db } from '@/Firebase/firebase'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { useNavigate } from 'react-router-dom'
+import { useAppDispatch, useAppSelector } from '@/States/hook'
+import { saveAccount, saveAccountInput } from '@/States/SaveAccountLogin'
+import { DocumentData, collection, getDocs } from 'firebase/firestore'
 
 type userCredsType = {
     email: string,
@@ -21,17 +24,50 @@ const Login = () => {
     const navigate = useNavigate();
     const [visible, setVisible] = useState<boolean>(false);
     const [status, setStatus] = useState('');
+    const [getAccountData, setGetData] = useState<DocumentData>([]);
+    
 
+    const dispatch = useAppDispatch();
 
     //check if user is already logged in then the page will redirect to the main page 
+    const collectionData = collection(db, 'Users');
     useEffect(() => {
         auth.onAuthStateChanged((user) => {
             if (user) {
                 navigate('/')
             }
         })
-        auth.currentUser?.uid && navigate('/')
+        auth.currentUser?.uid && navigate('/');
+
     }, [navigate, userCreds.email]); 
+
+    
+   
+    const getData = async () => {
+        const data = await getDocs(collectionData);
+        
+        const userdata = data.docs
+        .map((doc) => doc.data()).filter(data => data.UserId === auth.currentUser?.uid);
+  
+        if (userdata) {
+          setGetData(userdata);
+  
+          getAccountData.map((doc) => (
+            dispatch(saveAccount({
+              firstname: doc.FirstName,
+              lastname: doc.LastName,
+              email: doc.Email,
+              password: doc.Password,
+              profiledisplay: doc.ProfileDisplay 
+          }))
+          ))
+         
+         }
+
+         
+      }
+
+   
  
     const SignIn = async(e: React.FormEvent<HTMLFormElement>) => {
       try {
@@ -43,6 +79,8 @@ const Login = () => {
        
         setVisible(true);
         setStatus('Login Successful');
+        getData();
+
 
         setTimeout(() => {
             setVisible(false);

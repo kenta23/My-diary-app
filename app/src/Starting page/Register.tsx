@@ -9,7 +9,7 @@ import { auth, db, store} from '@/Firebase/firebase'
 import { createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth'
 import { error } from 'console'
 import { useNavigate } from 'react-router-dom'
-import { addDoc, collection } from 'firebase/firestore'
+import { addDoc, collection, doc } from 'firebase/firestore'
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
 import axios from 'axios'
 import { useAppDispatch } from '@/States/hook'
@@ -141,6 +141,7 @@ function logout() { //LOGOUT BUTTON
     //add the download url to the imageUrl state reducer
     dispatch(addUrl(downloadURL));
 
+    //add this to the json file 
     const userDataToSend = {
       imageUrl: downloadURL, // Include the image URL
       uid: auth.currentUser?.uid,

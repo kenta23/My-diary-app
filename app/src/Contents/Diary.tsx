@@ -7,8 +7,9 @@ const Diary = () => {
     const clicked = useAppSelector(state => state.diary.value);
     const dispatch = useAppDispatch();
 
-    let content;
+   
 
+    let content;
     if(clicked) {
         content = (
             <div>

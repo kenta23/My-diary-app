@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import menubar from '../assets/Menu bar.png'
 import userIcon from '../assets/user-mobile.png'
 import {  InputLabel } from '@mui/material'
@@ -6,18 +6,23 @@ import Sidebar from './Sidebar';
 import { useAppDispatch, useAppSelector } from '@/States/hook';
 import { open } from '@/States/menuSlice';
 import { useNavigate } from 'react-router-dom';
+import { collection, getDocs } from 'firebase/firestore';
+import { auth, db } from '@/Firebase/firebase';
+import { accountInfoState } from '@/utils/reduxTypes';
 
 //console.log(sidebarCoords);
-
 
 
 
 const Navbar = () => {
   const menuOpener = useAppSelector(state => state.getMenuOpener);
   const menuDispatch = useAppDispatch();
+  const accountInfo: accountInfoState = useAppSelector(state => state.getAccount);
 
+  
   //navigation
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
 
   return (
    <div>
@@ -32,7 +37,7 @@ const Navbar = () => {
         </div> 
 
         <div className='profileicon cursor-pointer visible lg:invisible'>
-           <img src={userIcon} alt="" className='w-[35px] h-auto cursor-pointer' onClick={() => navigate('/Profile')}/>
+           <img src={accountInfo.value.ProfileDisplay? accountInfo.value.ProfileDisplay : userIcon} alt="" className='w-[35px] h-auto cursor-pointer' onClick={() => navigate('/Profile')}/>
         </div>
           
       </div> 

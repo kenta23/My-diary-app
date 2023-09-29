@@ -10,6 +10,7 @@ import { useAppDispatch, useAppSelector } from '@/States/hook';
 import { uid } from 'uid';
 import { clearStatus, updateStatus } from '@/States/statusSlice';
 import { saveTitleAndContext } from '@/States/savingInput';
+import { newPostStatus } from '@/States/createNewSlice';
 
 type inpuTypes = {
   post: string,
@@ -33,9 +34,9 @@ const CreatePost = () => {
 
   //reducers 
   const status = useAppSelector(state =>  state.getStatus);
-  const statusDispatch = useAppDispatch();
+  const dispatch = useAppDispatch();
   const saveDiary = useAppSelector(state => state.getInput);
-  const saveDiaryDispatch = useAppDispatch();
+  const createPostStatus = useAppSelector(state => state.getPostStatus);
 
   let contentPost;
   //get the user auth id 
@@ -69,18 +70,19 @@ const CreatePost = () => {
       const timestamp = date.format(now, 'YYYY, MMM DD ddd');
 
       setVisible(true);
+      dispatch(newPostStatus(true));
       setTimeout(() => {
         setVisible(false);
-        statusDispatch(clearStatus());
+        dispatch(clearStatus());
       }, 1000)
 
       if(input.title === '') {
-        statusDispatch(updateStatus('Empty Title'));
+        dispatch(updateStatus('Empty Title'));
         return; 
       }
 
       else if (input.post === '') {
-        statusDispatch(updateStatus("Empty Diary"));
+        dispatch(updateStatus("Empty Diary"));
         return; 
       }
      
@@ -97,7 +99,7 @@ const CreatePost = () => {
         });
          
           console.log("Successfully Posted");
-          statusDispatch(updateStatus("Successfully Posted"));
+          dispatch(updateStatus("Successfully Posted"));
          
    
           setInput({
@@ -112,7 +114,7 @@ const CreatePost = () => {
            setTimeout(() => {
               setVisible(false);
            }, 1000);
-            statusDispatch(updateStatus("Something went wrong"));
+           dispatch(updateStatus("Something went wrong"));
          }
       }
   }
@@ -120,7 +122,7 @@ const CreatePost = () => {
   console.log(saveDiary.value);
 
  
-if(clicked) { 
+if(!createPostStatus.value) { 
  contentPost = ( 
  
  <form onSubmit={submitInput} className='mx-0 font-kaisei border border-[#745E3D] md:mr-0 lg:mr-[335px] xl:mr-[360px] w-max sm:w-[450px] md:w-[550px] lg:w-[700px] xl:w-[850px] h-[495px] '>
@@ -162,10 +164,11 @@ if(clicked) {
     </div>
    </div>
  </form> ) } 
+
  else {
   contentPost = (
    <div className='mx-0 font-kaisei border border-[#745E3D] flex flex-col items-center justify-center md:mr-0 lg:mr-[335px] xl:mr-[360px] w-[250px] sm:w-[450px] md:w-[550px] lg:w-[700px] xl:w-[850px] h-[495px]'>
-     <div className='flex flex-row gap-2 items-center cursor-pointer' onClick={() => setClicked(!clicked)}>
+     <div className='flex flex-row gap-2 items-center cursor-pointer' onClick={() => dispatch(newPostStatus(false))}>
        <PenSquare color='#745E3D' className='lg:w-[29px] h-auto'/><span className='text-[#745E3D] font-medium text-[22px] md:text-[30px] lg:text-[35px]'>Create New</span>
      </div>
   </div> )

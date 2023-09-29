@@ -2,11 +2,12 @@ import { PenSquare, Pencil, RotateCcw, Send, Smile, X } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import  noProfile  from '../assets/user-orange.png'
 import { auth, database } from '@/Firebase/firebase'
-import { onValue, ref, update } from 'firebase/database'
+import { onValue, ref, remove, update } from 'firebase/database'
 import { useAppDispatch, useAppSelector } from '@/States/hook'
 import  { EmojiStyle } from 'emoji-picker-react';
 import Picker from 'emoji-picker-react';
 import { clearStatus, updateStatus } from '@/States/statusSlice'
+import { newPostStatus } from '@/States/createNewSlice'
 
 type itemMapType ={
     UserId: string, 
@@ -37,8 +38,10 @@ const ViewDiary = () => {
 
     //reducers 
     const status = useAppSelector((state) => state.getStatus);
-    const statusDispatch = useAppDispatch();
+    const dispatch = useAppDispatch();
     const defaultContext = useAppSelector((state) => state.getInput);
+    const showCreatePostContent = useAppSelector(state => state.getPostStatus);
+  
     //const defaultContextDispatch = useAppDispatch(); 
     
 
@@ -93,7 +96,7 @@ const ViewDiary = () => {
        setVisible(true);
        setTimeout(() => {
           setVisible(false);
-          statusDispatch(clearStatus()); //clear the status after 1 second 
+          dispatch(clearStatus()); //clear the status after 1 second 
        }, 1000);
      
     try {
@@ -107,7 +110,7 @@ const ViewDiary = () => {
     });   //update the selected diary
 
 
-      statusDispatch(updateStatus('Successfully updated'));
+    dispatch(updateStatus('Successfully updated'));
 
       setTextInput({
         title: '',
@@ -121,7 +124,7 @@ const ViewDiary = () => {
        }
        catch (err) { 
           console.log(err);
-          statusDispatch(updateStatus('Successfully updated'));
+          dispatch(updateStatus('Successfully updated'));
        }
        
     }
@@ -136,6 +139,19 @@ const ViewDiary = () => {
      }
    
    console.log(textInput)
+
+   //DELETE DATA 
+   const removeDiary = async(userId: string | null) => {
+    const itemRef = ref(database, `Diary/${userId}`) // Replace with your data path
+    try
+    {
+      await remove(itemRef);
+      dispatch(newPostStatus(true));
+    }
+    catch (err) {
+      console.log(err);
+    } 
+  }
 
 return (
 <div className='mx-[40px] lg:mx-[10] relative font-kaisei border border-[#745E3D]  flex-col items-center justify-center md:mr-[190px] lg:mr-[335px] xl:mr-[360px] w-[250px] sm:w-[400px] md:w-[550px] lg:w-[500px] xl:w-[850px]  h-max'>
@@ -152,7 +168,7 @@ return (
            className='uppercase bg-transparent  text-[#292114] text-[17px] md:text-[20px] lg:text-[25px]  indent-2 placeholder-[#8b7d67] border-none outline-none w-auto' 
            placeholder={item.title}
            name='title'
-           defaultValue={item.title}
+           defaultValue={textInput.title}
            onChange={limitTitleChar}
            contentEditable //make conditional here -- contentEditable or disabled
         /> 
@@ -173,7 +189,7 @@ return (
            <textarea 
              name="post" 
              placeholder=''   
-             defaultValue={item.diary}
+             defaultValue={textInput.content}
              onChange={(e) => setTextInput(prev => ({...prev, content: e.target.value}))}      
              className=' flex-1 bg-[#f0e7d9] placeholder-[#776E57] lg:text-[20px] w-auto sm:w-[200px] indent-3 md:w-[260px] lg:w-[400px] xl:w-[700px] h-[360px] resize-none outline-none p-2'>  
            </textarea>
@@ -199,7 +215,7 @@ return (
 
   <div className='flex gap-[28px] items-center justify-center mt-[25px] float-right mx-[25px]'>
      {edit ? <X color='#DC612C' onClick={() => setEdit(false)} size={30} cursor={'pointer'}/> : <button className='text-[#DC612C] hover:text-[#e27241] duration-150 transition-all ease-in-out  cursor-pointer text-[25px] font-medium' onClick={() => handleEdit(item.uid)}>Edit</button>}
-     <button className='text-[#BD2323] hover:text-[#d34646] duration-150 transition-all ease-in-out cursor-pointer text-[25px] font-medium '>Delete</button>
+     <button className='text-[#BD2323] hover:text-[#d34646] duration-150 transition-all ease-in-out cursor-pointer text-[25px] font-medium' onClick={() => removeDiary(item.uid)}>Delete</button>
   </div>
 </div>   
   </div> 

@@ -14,8 +14,12 @@
     border-radius: 4px;
     opacity: 1;
     transition: opacity 0.5s ease-in-out;
-  }
+}
   
-  .status-indicator.hide {
+.status-indicator.hide {
     opacity: 0;
-  }
+}
+
+.container::-webkit-scrollbar {
+  width: 0;
+}

@@ -5,7 +5,8 @@ import getMenuOpener from './menuSlice';
 import getStatus from './statusSlice';
 import getInput from './savingInput';
 import getImageUrl from './imageUrl';
-
+import getPostStatus from './createNewSlice';
+import getAccount from './SaveAccountLogin';
 
 export const store =  configureStore({
     reducer:  
@@ -15,7 +16,9 @@ export const store =  configureStore({
          getMenuOpener,
          getStatus,
          getInput,
-         getImageUrl
+         getImageUrl,
+         getPostStatus,
+         getAccount,
       }
 })
 
