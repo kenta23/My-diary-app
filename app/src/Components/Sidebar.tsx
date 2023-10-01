@@ -58,12 +58,12 @@ const Sidebar = () => {
    useEffect(() => {
     const readDiary = () => {
       const diaryRef = ref(database, `Diary/`);
-      // Use the `get` function to retrieve the data once
+
      onValue(diaryRef, (snapshot) => {
         const dataVal = snapshot.val()
         setData([]);
         if(dataVal !== null) { 
-          const dataArray: string[] | unknown = Object.values(dataVal).map((datas: unknown) => datas);       
+          const dataArray: string[] | unknown = Object.values(dataVal).map((datas: unknown) => datas)       
           setData(dataArray);
         }
       })
@@ -109,6 +109,7 @@ const Sidebar = () => {
   }
 
   
+  console.log(data)
   return (
   <>
   {/**FOR MOBILE DEVICES */}

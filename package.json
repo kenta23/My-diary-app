@@ -2,6 +2,7 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
+    "@headlessui/react": "^1.7.17",
     "@mui/material": "^5.14.7",
     "@reduxjs/toolkit": "^1.9.5",
     "date-and-time": "^3.0.2",

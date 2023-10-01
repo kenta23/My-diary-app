@@ -25,7 +25,7 @@ function App() {
   const AccountInfo = useAppSelector((state) => state.getAccount);
 
   const collectionData = collection(db, 'Users');
-
+  
   //find exact user's data from firebase database 
   useEffect(() => {
     const getData = async () => {
@@ -47,6 +47,7 @@ function App() {
 }, []);
 
 
+console.log('account info', AccountInfo)
 
  
 return (

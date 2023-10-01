@@ -1,4 +1,4 @@
-import React, {useState } from 'react'
+import React, {useEffect, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import TextField from '@mui/material/TextField'
 import { FormControl } from '@mui/material'
@@ -14,6 +14,7 @@ import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
 import axios from 'axios'
 import { useAppDispatch } from '@/States/hook'
 import { addUrl } from '@/States/imageUrl'
+import { saveAccount } from '@/States/SaveAccountLogin'
 
 const formStyles: CSSProperties = {
   display: 'grid',
@@ -51,6 +52,8 @@ const Register = () => {
     userId: auth?.currentUser?.uid,
   });
 
+  
+
  
 
   const [status, setStatus] = useState('');
@@ -58,9 +61,20 @@ const Register = () => {
   const [visible, setVisible] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [fileUpload, setFileUpload] = useState<Blob | Uint8Array | ArrayBuffer | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            navigate('/')
+        }
+    })
+    auth.currentUser?.uid && navigate('/');
+
+}, [navigate])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {name, value} = e.target
@@ -71,7 +85,7 @@ const Register = () => {
     }))
   }
 
-
+  
   console.log(auth.currentUser?.uid)
 
 const saveData = async (e: React.FormEvent <HTMLButtonElement>) => {
@@ -125,6 +139,7 @@ const saveData = async (e: React.FormEvent <HTMLButtonElement>) => {
 function logout() { //LOGOUT BUTTON
   auth.signOut();
   dispatch(addUrl(''));
+  dispatch(saveAccount(''));  
 }
 
  //ADD IMAGE URL TO JSON FILE 
@@ -198,18 +213,25 @@ const createAccount = async () => {
        console.log(err);
    }
 }
+ 
+ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+   const file = e.target.files?.[0];
 
-/*const uploadFile = async () => {
-  //reference 
-  try {
-    const pictureRef = ref(store, `Users/${userData.firstname}/${fileUpload}`)
-    await uploadBytes(pictureRef, fileUpload);
-    console.log("Uploaded file successfully");
-  }
-  catch(err) {
-    console.log(err);
-  }
-} */
+   if (file) {
+    const reader = new FileReader();
+
+
+    reader.onload = (e) => {
+      if(e.target) {
+        setImageUrl(e.target.result as string);
+      }
+   }
+
+   reader.readAsDataURL(file);
+   setFileUpload(file);
+
+ }
+};
 
 
   return (
@@ -289,9 +311,9 @@ const createAccount = async () => {
                 
          <div className='flex flex-col items-center gap-[45px] md:gap-[80px]'>
                  <div className='flex flex-col items-center gap-6'>
-                   <img src={noprofile} alt="" className='w-[100px] sm:w-[130px] md:w-[135px] h-auto object-cover cursor-pointer'/>
+                   <img src = {imageUrl || noprofile} alt="" className='w-[100px] sm:w-[130px] md:w-[135px] h-auto object-cover cursor-pointer'/>
                      <h1 className='uppercase text-[18px] leading-[24px] font-medium'>Upload Display Photo</h1>
-                     <input type="file" className='p-2 bg-primary border-none rounded-[10px] text-dark cursor-pointer' id="fileInput"  accept="image/*" placeholder='Upload Display Photo' onChange={(e) => setFileUpload(e.target.files[0])}/>
+                     <input type="file" className='p-2 bg-primary border-none rounded-[10px] text-dark cursor-pointer' id="fileInput"  accept="image/*" placeholder='Upload Display Photo' onChange={handleFileChange}/>
                  </div>
 
                  <button type='submit' className='font-kaisei leading-tight font-medium bg-orange-400 hover:bg-green-400 transition-all duration-150 ease-in-out text-white text-center md:px-[69px] px-[40px] py-[10px] md:py-[18px] rounded-[20px]' onClick={saveData}>Register Account</button>

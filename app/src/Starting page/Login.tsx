@@ -6,9 +6,10 @@ import { NavLink } from 'react-router-dom'
 import { auth, db } from '@/Firebase/firebase'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { useNavigate } from 'react-router-dom'
-import { useAppDispatch, useAppSelector } from '@/States/hook'
-import { saveAccount, saveAccountInput } from '@/States/SaveAccountLogin'
+import { useAppDispatch,  } from '@/States/hook'
+import { saveAccount,  } from '@/States/SaveAccountLogin'
 import { DocumentData, collection, getDocs } from 'firebase/firestore'
+import { error } from 'console'
 
 type userCredsType = {
     email: string,
@@ -42,7 +43,7 @@ const Login = () => {
     }, [navigate, userCreds.email]); 
 
     
-   
+   //getting all the user's data and store to state when they logged in 
     const getData = async () => {
         const data = await getDocs(collectionData);
         
@@ -64,11 +65,9 @@ const Login = () => {
          
          }
 
-         
       }
 
    
- 
     const SignIn = async(e: React.FormEvent<HTMLFormElement>) => {
       try {
         e.preventDefault();
@@ -79,7 +78,7 @@ const Login = () => {
        
         setVisible(true);
         setStatus('Login Successful');
-        getData();
+        await getData();
 
 
         setTimeout(() => {
@@ -87,15 +86,35 @@ const Login = () => {
             navigate('/');
         }, 1000);
 
-      } catch (error) {
+      } catch (error:  unknown) {
         setVisible(true);
-        setStatus('Something went wrong');
-
+         // Handle login errors
+      switch (error.code) {
+         case "auth/user-not-found":
+           console.log("User not found");
+           setStatus('User not found');
+           break;
+         case "auth/invalid-email":
+          setStatus('Invalid email');
+           break;
+         case "auth/wrong-password":
+           console.log("Wrong password");
+           setStatus('Wrong password');
+           break;
+         case "auth/email-already-in-use":
+            console.log('Email already in use');
+            setStatus('Email already in use');
+            break;
+         default:
+            console.error("Login error:", error);
+            setStatus('Something went wrong');
+           break;
+      }
+        
         setTimeout(() => {
             setVisible(false);
-        }, 1000);
+        }, 2000);
 
-        console.log(error);
       }        
     }
 

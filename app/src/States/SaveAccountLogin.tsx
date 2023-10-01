@@ -19,9 +19,12 @@ export const saveAccountInput = createSlice( {
         saveAccount: (state, action) => {
              state.value = action.payload
         },
+        updateProfileDisplay: (state, action) => {
+           state.value.ProfileDisplay = action.payload
+        }
      }
 })
 
 
-export const { saveAccount } = saveAccountInput.actions
+export const { saveAccount, updateProfileDisplay } = saveAccountInput.actions
 export default saveAccountInput.reducer;
