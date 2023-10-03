@@ -1,5 +1,5 @@
-import { ArrowLeft } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import { ArrowLeft, LogOut } from 'lucide-react'
+import React, { ReactElement, ReactHTMLElement, ReactNode, useEffect, useState } from 'react'
 import profile from '../assets/no-profile.png'
 import TextField from '@mui/material/TextField'
 import { useNavigate } from 'react-router-dom'
@@ -10,9 +10,11 @@ import { clearStatus, updateStatus } from '@/States/statusSlice'
 import { saveAccount, updateProfileDisplay } from '@/States/SaveAccountLogin'
 import { accountInfoState } from '@/utils/reduxTypes'
 import axios from 'axios'
-import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage'
+import { deleteObject, getDownloadURL, listAll, ref, uploadBytes } from 'firebase/storage'
 import { addUrl } from '@/States/imageUrl'
 import AccountDeletionModal from '@/utils/AccountDeletionModal'
+import { deleteUser, signOut } from 'firebase/auth'
+import LogoutModal from '@/utils/LogoutModal'
 
 type documentType  = {
    Email: string,
@@ -44,8 +46,8 @@ const Profile = () => {
   const [visible, setVisible] = useState(false);
   const accountInfo: accountInfoState = useAppSelector(state => state.getAccount) ;
   //image file
-  const [imageFile, setImageFile] = useState<unknown | Blob | Uint8Array | ArrayBuffer>();
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState< Blob | Uint8Array | ArrayBuffer | undefined | ReactNode>();
+  const [imageUrl, setImageUrl] = useState<string | null| undefined>(null);
 
 
   const navigate = useNavigate(); 
@@ -55,40 +57,56 @@ const Profile = () => {
   const dispatch = useAppDispatch();
 
 
-  //FOR MODAL ACCOUNT DELETION STATE
+  //FOR MODAL ACCOUNT DELETION AND LOGOUT DIALOG
   const [ isOpen, setIsOpen ] = useState<boolean>(false);
-  const [onRequestClose, setOnRequestClose] = useState<boolean>(false);
+  const [openLogoutDialog, setOpenLogoutDialog] = useState<boolean>(false);
 
-  //store the account data in a state
-  useEffect(() => {
-    const getData = async () => {
-     const data = await getDocs(collectionData);
-     
-     const userdata = data.docs
+  //store the account data in a state when reloading the page 
+useEffect(() => {
+  const getData = async () => {
+    const data = await getDocs(collectionData);
+    
+    const userdata = data.docs
      .map((doc) => doc.data()).filter(data => data.UserId === auth.currentUser?.uid);
 
-     if (userdata) {
-       setUserData(userdata); 
-      }
-   }
-   getData(); 
-}, []);
+   
+    if (userdata.length > 0) {
+      userdata.forEach((data) => {
+        dispatch(saveAccount(data)); //save all the user info in state
+        console.log('my data in save account state', accountInfo); 
+        setUserData(userdata); 
+        console.log('userdata', userData);
+      });
+    }
 
+   if(accountInfo) {
+      //setting default user data in inputs 
+     setUpdateAccount({
+      firstname: accountInfo.value.FirstName,
+      lastname: accountInfo.value.LastName, 
+      email: accountInfo.value.Email,
+      password: accountInfo.value.Password,
+      profileDisplay: accountInfo.value.ProfileDisplay
+   })
 
-useEffect(() => {
-    setUpdateAccount({
-       firstname: accountInfo.value.FirstName,
-       lastname: accountInfo.value.LastName, 
-       email: accountInfo.value.Email,
-       password: accountInfo.value.Password,
-       profileDisplay: accountInfo.value.ProfileDisplay
-    })
-
-    setConfirmPassword(accountInfo.value.Password);
+   setConfirmPassword(accountInfo.value.Password);
+   console.log('update account', updateAccount);
+   }  
+  }
+ 
+    getData(); 
 }, [])
 
+useEffect(() => {
+  auth.onAuthStateChanged((user) => {
+      if (!user) {
+          navigate('/login')
+      }
+  })
+}, [navigate])
 
-  async function formSubmit(e: React.FormEvent) {
+
+async function formSubmit(e: React.FormEvent) {
     e.preventDefault();
   
     const ref = collection(db, 'Users');
@@ -101,21 +119,18 @@ useEffect(() => {
     querySnapshot.forEach((doc) => {
       // Push the document reference, not the document data
       documentReferences.push(doc.ref);
-  
+      
     });
   
     // Set the document references in state
     setDocumentReference(documentReferences);
-    console.log(documentReferences);
-
-     updateData(); 
-     uploadImage();
-  }
+    await updateData(); 
+}
   
-  //RE UPLOAD DATA
- const uploadImage = async () => {
+async function updateData() {
   try {
     // Upload the profile picture to Firebase Storage
+   if(imageFile !== undefined && imageFile !== null) {
     const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${imageFile?.name}`);
     await uploadBytes(storageRef, imageFile); // Assuming fileUpload is a Blob or File object
 
@@ -123,65 +138,55 @@ useEffect(() => {
     const downloadURL = await getDownloadURL(storageRef);
 
     //add the download url to account statae to only update the image file when submitted
-    dispatch(updateProfileDisplay(downloadURL));
-  } catch (err) {
-    console.error('Image upload or data sending failed:', err);
-  }
-};
+    downloadURL.length > 0 && dispatch(updateProfileDisplay(downloadURL));
+    console.log('url', downloadURL);
+    console.log('image file updated')
+   } 
+   //for firebase firestore datas
+ if(updateAccount.firstname === '' || updateAccount.lastname === '' || updateAccount.email === '' || updateAccount.password === '' || confirmPassword === '') {
+    console.log('Please complete all the details');
+    dispatch(updateStatus('Please complete all the details'));
+    setVisible(true);
 
-async function updateData() {
-  if(updateAccount.firstname === '' || updateAccount.lastname === '' || updateAccount.email === '' || updateAccount.password === '' || confirmPassword === '') {
-     console.log('Please complete all the details');
-     dispatch(updateStatus('Please complete all the details'));
-     setVisible(true);
-
-     setTimeout(() => {
-       dispatch(clearStatus());
-       setVisible(false);
-     }, 1000) 
-  }
-
- else if(updateAccount.password !== confirmPassword) {
-   dispatch(updateStatus('Please Confirm your password correctly'));
-     setVisible(true);
-
-     setTimeout(() => {
-       dispatch(clearStatus());
-       setVisible(false);
-     }, 1000)
+    setTimeout(() => {
+      dispatch(clearStatus());
+      setVisible(false);
+    }, 2000) 
  }
- else {
-  try {
-  
-    for (const docRef of documentReference) {
-      // Use the document reference to update the document
-      await updateDoc(docRef, {
-        FirstName: updateAccount.firstname,
-        LastName: updateAccount.lastname,
-        Email: updateAccount.email,
-        Password: updateAccount.password,
-        ProfileDisplay: imageFile
-      });
-    }
-    console.log('Successfully updated');
-    dispatch(updateStatus('Successfully updated'));
+
+else if(updateAccount.password !== confirmPassword) {
+  dispatch(updateStatus('Please Confirm your password correctly'));
     setVisible(true);
 
     setTimeout(() => {
       dispatch(clearStatus());
       setVisible(false);
     }, 1000)
+}
+else {
+  for (const docRef of documentReference) {
+    // Use the document reference to update the document
+    await updateDoc(docRef, {
+      FirstName: updateAccount.firstname,
+      LastName: updateAccount.lastname,
+      Email: updateAccount.email,
+      Password: updateAccount.password,
+      ProfileDisplay: accountInfo.value.ProfileDisplay
+    });
+  }
 
+  dispatch(updateStatus('Successfully updated'));
+  setVisible(true);
+
+  setTimeout(() => {
+    dispatch(clearStatus());
+    setVisible(false);
+  }, 1000)
+}   
   } catch(err) {
     console.log(err);
-  }
- }
-    
-}
-
- useEffect(() => {
-    
- }, [accountInfo.value.ProfileDisplay]);
+   }
+}  
 
   function handleChange (e: React.ChangeEvent<HTMLInputElement>) {
       const { name, value } = e.target;
@@ -206,40 +211,77 @@ async function updateData() {
       }
   }
 
-  async function handleDelete() {
+async function handleDelete() {
      //delete profile image
-     const deleteRef = ref(store, `Users/${auth.currentUser?.uid}`);
-     deleteObject(deleteRef).then(() => {
-       console.log('Deleted Successfully');
-     }).catch((err) => {
-        console.log(err);
-     })
+  const userId = auth.currentUser?.uid;
+   try {  
+       const path = `Users/${userId}/`;
+       // Reference the user's folder
+       const userFolderRef = ref(store, path);
+       const listResult = await listAll(userFolderRef);
 
-     //delete firestore datas
-     const data = await getDocs(collectionData);  //get the data first specifically
-     
-     const userdata = data.docs
-     .map((doc) => doc.data()).filter(data => data.UserId === auth.currentUser?.uid);
+       // Delete each item (file) in the folder
+       await Promise.all(listResult.items.map(async (item) => {
+         await deleteObject(item);
+         console.log(`Deleted ${item.fullPath}`);
+       }));
 
-     if (userdata.length > 0) {
-      userdata.forEach((data) => {
-        updateDoc(doc(db, 'Users'),  {
-             data: deleteField()
-        })
-      });
-    }
+     // Check if the user is logged in
+     if (userId) {
+       // Delete documents in the Firestore collection associated with the user
+       const userCollectionRef = collection(db, 'Users');
+       const userQuery = query(userCollectionRef, where('UserId', '==', userId));
+       const querySnapshot = await getDocs(userQuery);
+ 
+       querySnapshot.forEach((docSnapshot) => {
+         deleteDoc(doc(db, 'Users', docSnapshot.id));
+         console.log(`Document with ID ${docSnapshot.id} deleted.`);
+       });
+
+     //DELETE AUTH
+     const user = auth.currentUser;
+     deleteUser(user).then(() => {
+      console.log('Successfully deleted account')
+    }).catch((err) => {
+      console.log('Something went wrong');
+      console.log(err);
+    })
+  }
+}
+  catch(err) {
+    console.log(err);
+  }
 
   }
 
-  async function confirmDeletion() {
-    await handleDelete();  //call the delete account function when user clicks the delete button 
+   function confirmDeletion() {
+    dispatch(updateStatus('Deleting your account.....'));
+    setVisible(true);
+
+    setTimeout(() => {
+       handleDelete();  //call the delete account function when user clicks the delete button 
+       dispatch(clearStatus());
+       setVisible(false);
+    }, 1000)  //after 1 second execute this function
     setIsOpen(false); //close the modal
   }
 
 
- console.log('account', updateAccount) 
- //console.log(defaultAccountInfo)
-console.log(imageFile);
+ function handleLogout () {
+  if(openLogoutDialog) {
+    dispatch(updateStatus('Logged Out'));
+    setVisible(true);
+
+    setTimeout(() => {
+        setVisible(false);
+        dispatch(clearStatus());
+        auth.signOut();
+        navigate('/login');
+    }, 2000)
+  }
+     setOpenLogoutDialog(false);
+  }
+
 
 return (
   <div className='w-full h-full relative'>
@@ -252,7 +294,7 @@ return (
       {userData.map((data: documentType) => (
          <div className='flex flex-col items-center gap-[50px]' key={data.UserId}>
          <div className='profile gap-[27px] flex flex-col items-center mt-[112px] '>
-             <img src={imageUrl ? imageUrl : data.ProfileDisplay} alt="" className='cursor-pointer w-[116px] lg:w-[135px] h-auto'/>
+             <img src={imageUrl ? imageUrl : data.ProfileDisplay} alt="" className='cursor-pointer w-[116px] lg:w-[135px] h-auto rounded-[20%]'/>
              <input type="file" className='p-2 bg-primary border-none rounded-[10px] text-dark cursor-pointer' id="fileInput"  accept="image/*" placeholder='Upload New Display Photo' onChange={handleImageFileChange}/>
              <h1 className='text-[18px] md:text-[25px] lg:text-[30px] uppercase font-medium leading-[24px]'>Profile</h1>
          </div>
@@ -319,15 +361,15 @@ return (
      
 
          <div className='mt-[40px]'>
-              <button className='text-stone-600 text-lg font-normal w-[189px] lg:w-[220px] mx-auto h-[42px] lg:h-[50px] rounded-[50px] hover:bg-primary hover:text-white transition-all duration-150 ease-in-out border border-yellow-900 leading-none' onClick={() => setIsOpen(true)}>Delete Account</button>
+              <button className='text-stone-600 text-lg font-normal w-[189px] lg:w-[220px] mx-auto h-[42px] lg:h-[50px] rounded-[50px] hover:bg-primary hover:text-white transition-all duration-150 ease-in-out border border-yellow-900 leading-none' type='button' onClick={() => setIsOpen(true)  }>Delete Account</button>
         </div>
      </div>
       ))}  
       
 
        <div className='flex justify-between mx-8 mt-8'>
-           <button className='w-[127px] h-[39px] pl-[9px] pr-2 pt-2 pb-[7px] bg-amber-500 rounded-[20px] justify-center items-center inline-flex text-white text-base font-medium leading-normal' type='submit' onSubmit={formSubmit}>Save Changes</button>
-           <button className='w-[98px] h-[39px] pl-[22px] pr-[23px] pt-2 pb-[7px] bg-red-600 rounded-[20px] justify-center items-center inline-flex text-white text-base font-medium leading-normal'>Cancel</button>
+           <button className='w-[127px] h-[39px] pl-[9px] pr-2 pt-2 pb-[7px] bg-amber-500 rounded-[20px] justify-center items-center inline-flex text-white text-base font-medium leading-normal' type='submit' >Save Changes</button>
+           <button className='w-[98px] h-[39px] pl-[22px] pr-[23px] pt-2 pb-[7px] bg-red-600 rounded-[20px] justify-center items-center inline-flex text-white text-base font-medium leading-normal' type='button' onClick={() => setOpenLogoutDialog(true)}><LogOut color='#0000' size={5}/>Logout</button>
        </div>
     </form>
    {visible && status && <h1 className={` transition-all duration-150 font-inter absolute  text-[14px] left-[20%] sm:left-[25%] md:left-[30%] lg:left-[40%] xl:left-[45%] bottom-3 bg-[#17140F] w-fit text-white py-2 rounded-[20px] px-3`}>{status.value}</h1>}
@@ -335,10 +377,16 @@ return (
   {isOpen && <AccountDeletionModal 
       open={isOpen}
       onRequestClosed={() => setIsOpen(false)}
-      confirmDeletion={confirmDeletion}
+      confirmDeletion={confirmDeletion} 
    />}
+   {openLogoutDialog && <LogoutModal 
+      openDialog={openLogoutDialog}
+      onRequestClosed={() => setOpenLogoutDialog(false)}
+      confirmLogout={handleLogout}
+   />}
+  
   </div>
-  )
-}
-
+  ) 
+} 
+    
 export default Profile

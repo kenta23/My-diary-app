@@ -12,9 +12,10 @@ import { useNavigate } from 'react-router-dom'
 import { addDoc, collection, doc } from 'firebase/firestore'
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
 import axios from 'axios'
-import { useAppDispatch } from '@/States/hook'
+import { useAppDispatch, useAppSelector } from '@/States/hook'
 import { addUrl } from '@/States/imageUrl'
 import { saveAccount } from '@/States/SaveAccountLogin'
+import { clearStatus, updateStatus } from '@/States/statusSlice'
 
 const formStyles: CSSProperties = {
   display: 'grid',
@@ -56,15 +57,16 @@ const Register = () => {
 
  
 
-  const [status, setStatus] = useState('');
+ 
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [visible, setVisible] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false);
   const [fileUpload, setFileUpload] = useState<Blob | Uint8Array | ArrayBuffer | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+
+  const status = useAppSelector(state => state.getStatus);
 
   useEffect(() => {
     auth.onAuthStateChanged((user) => {
@@ -92,54 +94,49 @@ const saveData = async (e: React.FormEvent <HTMLButtonElement>) => {
   e.preventDefault();
 
   if(userData.firstname === '' || userData.lastname === '' || userData.email === '' || userData.password === '') { 
-       setStatus("Please complete your details ");
-       setVisible(true);
+       updatingStatus("Please complete your details");
        return;
   }
   else if(confirmPassword !== userData.password) {
-    setStatus('Password dont match');
-    setVisible(true);
-    return;
+       updatingStatus("Passwords do not match");
+       return;
   }
   else if((userData.password).length < 8 ) {
-    setStatus("Password is too short");
-    setVisible(true);
+    updatingStatus("Password must be at least 8 characters");
     return;
   }
   else if(fileUpload === null) {
-      setStatus("Please upload a Display Profile");
-      setVisible(true);
+      updatingStatus("Please upload a Profile Display");
       return;
   }
   else {
-    //if successful registered, proceed to create new account from firebase
+    //condition if the user email is already registered
     const alreadyUser = await fetchSignInMethodsForEmail(auth, userData.email);
-
     if (alreadyUser && alreadyUser.length > 0) {
-        setStatus('Account already exists');
-        setVisible(true);
+        updateStatus("Account already exists");
         return;
     }
     else {
-      setIsRegistered(true);
-      createAccount();
-      setStatus("Account created");
-      setVisible(false);
-
-      navigate('/sucessful');
-  
+        updatingStatus("Registering your account");
+        createAccount();
+        navigate('/sucessful');
+      
       setTimeout(() => {
         navigate('/login') 
-      }, 2000) 
+      }, 3000) 
       
     }
   }
 };
 
-function logout() { //LOGOUT BUTTON
-  auth.signOut();
-  dispatch(addUrl(''));
-  dispatch(saveAccount(''));  
+function updatingStatus(status: string) {
+    dispatch((updateStatus(status)));
+    setVisible(true);
+
+    setTimeout(() => {
+      dispatch(clearStatus());
+      setVisible(false);
+    }, 1000)
 }
 
  //ADD IMAGE URL TO JSON FILE 
@@ -204,13 +201,13 @@ const createAccount = async () => {
 
    catch(err) {
      if(err === 'auth/email-already-in-use') {
-       setStatus("Account already exists");
+       dispatch(updateStatus("Account already exists"));
        setVisible(true);
        return;
      }
-      setStatus("An error occurred during account creation");
+      dispatch(updateStatus("An error occurred during account creation"));
       setVisible(true);
-       console.log(err);
+      console.log(err);
    }
 }
  
@@ -235,9 +232,9 @@ const createAccount = async () => {
 
 
   return (
-    <div className='bg-bg w-full h-screen relative font-kaisei'>
+    <div className='bg-bg w-full min-w-fit pb-5 min-h-[690px] lg:h-screen relative font-kaisei'>
        <div className='pt-[25px] ps-[15px] w-min h-min '>
-          <ArrowLeft color='#EA9619' size={45} className='cursor-pointer'/>
+          <ArrowLeft color='#EA9619' size={45} className='cursor-pointer' onClick={() => navigate('/')}/>
        </div>
 
        <h1 className='mt-[30px] md:mt-[43px] ms-[55px] text-dark leading-[20px] text-[25px] sm:text-[28px] md:text-[30px] lg:text-[35px] grid-cols-2'>Account Registration</h1>
@@ -309,14 +306,14 @@ const createAccount = async () => {
        </FormControl>   
   
                 
-         <div className='flex flex-col items-center gap-[45px] md:gap-[80px]'>
+         <div className='flex flex-col items-center gap-[45px] md:gap-[80px] '>
                  <div className='flex flex-col items-center gap-6'>
                    <img src = {imageUrl || noprofile} alt="" className='w-[100px] sm:w-[130px] md:w-[135px] h-auto object-cover cursor-pointer'/>
                      <h1 className='uppercase text-[18px] leading-[24px] font-medium'>Upload Display Photo</h1>
                      <input type="file" className='p-2 bg-primary border-none rounded-[10px] text-dark cursor-pointer' id="fileInput"  accept="image/*" placeholder='Upload Display Photo' onChange={handleFileChange}/>
                  </div>
 
-                 <button type='submit' className='font-kaisei leading-tight font-medium bg-orange-400 hover:bg-green-400 transition-all duration-150 ease-in-out text-white text-center md:px-[69px] px-[40px] py-[10px] md:py-[18px] rounded-[20px]' onClick={saveData}>Register Account</button>
+                 <button type='submit' className='font-kaisei leading-tight font-medium bg-orange-400 hover:bg-green-400 transition-all duration-150 ease-in-out text-white text-center md:px-[69px] px-[40px] py-[10px] md:py-[18px] rounded-[20px] ' onClick={saveData}>Register Account</button>
              </div>
            </div>
        </div>
@@ -325,10 +322,8 @@ const createAccount = async () => {
          <img src={book} alt="" className='w-[100px] sm:w-[150px] md:w-[200px] h-auto object-cover rotate-[-10deg]'/>
        </div>
 
-       <button className='absolute hidden lg:block rounded-[20px] px-[20px] md:px-[30px] py-[10px] bg-[#EC2525] hover:bg-[#ee4d4d] duration-150 ease-in-out transition-all text-white text-center right-4 bottom-4'>Cancel</button>
-       {status && visible && <h1 className={`${visible ? 'opacity-90 bottom-10 ' : 'opacity-0 bottom-0'} transition-all duration-150 font-inter absolute left-[50%] text-[14px]  bg-[#17140F] w-fit text-white py-2 rounded-[20px] px-3`}>{status}</h1>}
-
-       <button onClick={logout}>logout</button>
+       <button className='absolute hidden lg:block rounded-[20px] px-[20px] md:px-[30px] py-[10px] bg-[#EC2525] hover:bg-[#ee4d4d] duration-150 ease-in-out transition-all text-white text-center right-4 bottom-4' onClick={() => navigate('/')}>Cancel</button>
+       {status && visible && <h1 className={`absolute bottom-4 transition-all duration-150 font-inter left-[20%] md:left-[30%] lg:left-[45%] text-[14px]  bg-[#17140F] w-fit text-white py-2 rounded-[20px] px-3`}>{status.value}</h1>}
     </div>
 
   )

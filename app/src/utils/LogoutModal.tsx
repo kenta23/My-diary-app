@@ -1,19 +1,17 @@
 import { Fragment, useRef } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { AlertTriangle } from 'lucide-react'
-
+import { AlertTriangle, Info } from 'lucide-react'
 
 type propsType = {
-    open: boolean,
+    openDialog: boolean,
     onRequestClosed: () => void,
-    confirmDeletion: () => void
+    confirmLogout: () => void
 }
-
-const AccountDeletionModal = ({open, onRequestClosed, confirmDeletion}: propsType) => {
+const LogoutModal = ({ openDialog, onRequestClosed, confirmLogout}: propsType) => {
     const cancelButtonRef = useRef(null)
   
     return (
-      <Transition.Root show={open} as={Fragment}>
+      <Transition.Root show={openDialog} as={Fragment}>
         <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={onRequestClosed}>
           <Transition.Child
             as={Fragment}
@@ -42,16 +40,15 @@ const AccountDeletionModal = ({open, onRequestClosed, confirmDeletion}: propsTyp
                   <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                     <div className="sm:flex sm:items-start">
                       <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <AlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true"/> 
+                        <Info color='#e0872d'/>
                       </div>
                       <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                         <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                          Deleting account
+                          Logout?
                         </Dialog.Title>
                         <div className="mt-2">
                           <p className="text-sm text-gray-500">
-                            Are you sure you want to Delete your account? All of your data will be permanently
-                            removed. This action cannot be undone.
+                            Are you sure you want to log out?
                           </p>
                         </div>
                       </div>
@@ -60,10 +57,10 @@ const AccountDeletionModal = ({open, onRequestClosed, confirmDeletion}: propsTyp
                   <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                     <button
                       type="button"
-                      className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
-                      onClick={() => confirmDeletion()}
+                      className="inline-flex w-full justify-center rounded-md bg-[#e0872d] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
+                      onClick={() => confirmLogout()}
                     >
-                      Delete
+                      Logout
                     </button>
                     <button
                       type="button"
@@ -83,4 +80,4 @@ const AccountDeletionModal = ({open, onRequestClosed, confirmDeletion}: propsTyp
   )
 }
 
-export default AccountDeletionModal
+export default LogoutModal

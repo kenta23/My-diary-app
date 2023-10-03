@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { PenSquare, Pencil, RotateCcw, Send, Smile } from 'lucide-react'
 import  noProfile  from '../assets/user-orange.png'
 import  { EmojiStyle } from 'emoji-picker-react';
@@ -19,12 +19,13 @@ type inpuTypes = {
 
 
 const CreatePost = () => {
-  const [clicked, setClicked] = useState<boolean>(false);
   const [clickEmoji, setClickEmoji] = useState<boolean>(false);
   const [input, setInput] = useState<inpuTypes>({
     post: '',
     title: '',
   });
+
+ 
  
   const limitTitle = 18; //length of title characters
   const uuid = uid();
@@ -70,7 +71,7 @@ const CreatePost = () => {
       const timestamp = date.format(now, 'YYYY, MMM DD ddd');
 
       setVisible(true);
-      dispatch(newPostStatus(true));
+
       setTimeout(() => {
         setVisible(false);
         dispatch(clearStatus());
@@ -89,7 +90,6 @@ const CreatePost = () => {
       else {
         try {    
           const newDiaryRef = ref(database, `Diary/${uuid}`);
-          
           await set(newDiaryRef, {
            UserId: auth.currentUser?.uid,
            date: timestamp,
@@ -100,8 +100,8 @@ const CreatePost = () => {
          
           console.log("Successfully Posted");
           dispatch(updateStatus("Successfully Posted"));
-         
-   
+          dispatch(newPostStatus(true));
+        
           setInput({
             post: '',
             title: '',
@@ -124,7 +124,6 @@ const CreatePost = () => {
  
 if(!createPostStatus.value) { 
  contentPost = ( 
- 
  <form onSubmit={submitInput} className='mx-0 font-kaisei border border-[#745E3D] md:mr-0 lg:mr-[335px] xl:mr-[360px] w-max sm:w-[450px] md:w-[550px] lg:w-[700px] xl:w-[850px] h-[495px] '>
   <div className='title flex gap-2 py-2 font-bold border-b border-[#745E3D] w-full h-[55px] items-center justify-center'>  
      <div className='relative flex items-center'>

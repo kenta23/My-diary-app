@@ -5,10 +5,10 @@ import ViewDiary from './ViewDiary';
 
 const Diary = () => {
     const clicked = useAppSelector(state => state.diary.value);
+    const createNewPost = useAppSelector(state => state.getPostStatus);
     const dispatch = useAppDispatch();
 
    
-
     let content;
     if(clicked) {
         content = (
@@ -18,11 +18,12 @@ const Diary = () => {
         )
     }
     else {
-        content = (
+           content = (
             <div>
-                <CreatePost />
+              <CreatePost />
             </div>
         )
+
     }
 
   return (

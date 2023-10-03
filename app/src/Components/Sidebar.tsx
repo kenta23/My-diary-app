@@ -45,12 +45,8 @@ const Sidebar = () => {
    const accountInfo: accountInfoState = useAppSelector(state => state.getAccount);
    
   
-  
- 
-   
    const authId = auth.currentUser?.uid;
    const navigate = useNavigate();
-
    //reducers
    const dispatch = useAppDispatch();
 
@@ -101,7 +97,7 @@ const Sidebar = () => {
     {
       await remove(itemRef);
       setDeleted(true);  
-      dispatch(newPostStatus(false));
+      dispatch(newPostStatus(true));
     }
     catch (err) {
       console.log(err);

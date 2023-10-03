@@ -130,7 +130,7 @@ const Login = () => {
     console.log(auth.currentUser?.uid);
 
   return (
-    <div className='bg-bg h-screen w-full min-h-screen max-w-full min-w-min'>
+    <div className='bg-bg  w-full h-fit lg:h-screen  max-w-full min-w-fit'>
         <div className='flex flex-col lg:flex-row justify-between h-full w-full'>
             <div className='left lg:w-[40%] ' style={{background: 'linear-gradient(50deg, #C17351 8.04%, rgba(228, 179, 144, 0.53) 52.94%, rgba(245, 196, 181, 0.00) 103.83%)'}}>
                <div className='h-full w-full justify-center items-center flex'>
@@ -144,7 +144,7 @@ const Login = () => {
                         <h1 className='font-kaisei text-[25px] sm:text-[28px] md:text-[30px] lg:text-[35px] z-10'>Welcome to <span className='text-logo font-inika font-semibold'>MyDiariz</span></h1>
                         <span className='text-gray font-kaisei md:text-[20px]'>A simple diary app</span>
 
-                        <img src={book} alt="" className='w-[240px] absolute bottom-[5px] left-[-80px] md:left-[-110px]'/>
+                        <img src={book} alt="" className='w-[240px] absolute bottom-[5px] select-none left-[-80px] md:left-[-110px]'/>
                     </div>
 
 
@@ -178,7 +178,6 @@ const Login = () => {
                     </form>
 
                     <h1 className='md:text-[22px] mb-[50px] font-kaisei'>Don't have an account? <NavLink to={'/register'} className='text-[#E57E1E] font-semibold cursor-pointer'>Sign up</NavLink></h1>
-                    <button onClick={() => auth.signOut()}>logout</button>
                     {visible && <h1 className='duration-150 font-inter text-[12px] md:text-[14px] bg-[#353027] w-fit text-white py-2 rounded-[20px] px-3 bottom-5 text-center'>{status}</h1>}
                 </div>
             </div>

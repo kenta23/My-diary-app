@@ -47,8 +47,7 @@ function App() {
 }, []);
 
 
-console.log('account info', AccountInfo)
-
+console.log(auth.currentUser?.uid);
  
 return (
    <div className="w-full relative min-h-full h-screen overflow-hidden bg-[#F4F0E9]">

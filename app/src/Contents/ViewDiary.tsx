@@ -8,6 +8,7 @@ import  { EmojiStyle } from 'emoji-picker-react';
 import Picker from 'emoji-picker-react';
 import { clearStatus, updateStatus } from '@/States/statusSlice'
 import { newPostStatus } from '@/States/createNewSlice'
+import { useNavigate } from 'react-router-dom'
 
 type itemMapType ={
     UserId: string, 
@@ -40,13 +41,16 @@ const ViewDiary = () => {
     const status = useAppSelector((state) => state.getStatus);
     const dispatch = useAppDispatch();
     const defaultContext = useAppSelector((state) => state.getInput);
-    const showCreatePostContent = useAppSelector(state => state.getPostStatus);
+    const CreateNewPost = useAppSelector(state => state.getPostStatus);
+
+    const navigate = useNavigate();
+
   
     //const defaultContextDispatch = useAppDispatch(); 
-    
-
+  
+   
+ 
     useEffect(() => {
-
       const RenderData =  () => {
         const diaryRef = ref(database, `Diary/`);
 
@@ -64,6 +68,7 @@ const ViewDiary = () => {
       }
        RenderData()
     }, [])
+
 
     useEffect(() => {
         setTextInput({
@@ -126,7 +131,6 @@ const ViewDiary = () => {
           console.log(err);
           dispatch(updateStatus('Successfully updated'));
        }
-       
     }
 
     const handleEmojiClick = (emoji: string) => {
@@ -219,7 +223,7 @@ return (
   </div>
 </div>   
   </div> 
-         
+         <h1 className='text-orange-500 font-semibold text-[20px] cursor-pointer mx-[15px] mb-[10px]' onClick={() => dispatch(newPostStatus(true))}>Create New</h1>
   </div>
 ))}  
 
