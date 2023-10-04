@@ -6,16 +6,11 @@ import {store} from "./States/store"
 import { Provider } from 'react-redux'
 import Login from './Starting page/Login.tsx'
 import Register from './Starting page/Register.tsx'
-import Welcome from './Starting page/Welcome.tsx'
 import { BrowserRouter,Route, Routes  } from 'react-router-dom'
-import ErrorPage from './Starting page/ErrorPage.tsx'
-import { auth } from './Firebase/firebase.ts'
 import SucessfulRegistered from './Starting page/SucessfulRegistered.tsx'
 import PrivateRoutes from './PrivateRoute/PrivateRoutes.tsx'
-import SecureRoute from './PrivateRoute/SecureRoute.tsx'
 import Profile from './Components/Profile.tsx'
 import CreatePost from './Contents/CreatePost.tsx'
-
 
 
 

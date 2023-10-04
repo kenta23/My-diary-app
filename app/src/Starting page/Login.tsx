@@ -9,14 +9,23 @@ import { useNavigate } from 'react-router-dom'
 import { useAppDispatch,  } from '@/States/hook'
 import { saveAccount,  } from '@/States/SaveAccountLogin'
 import { DocumentData, collection, getDocs } from 'firebase/firestore'
-import { error } from 'console'
+
 
 type userCredsType = {
     email: string,
     password: string
 }
-
-
+type docType = {
+  FirstName: unknown,
+  LastName: unknown,
+  Email: unknown,
+  Password: unknown,
+  ProfileDisplay: unknown 
+}
+type authError = {
+  code: string,
+  message: string
+}
 const Login = () => {
     const [userCreds, setUserCreds] = useState<userCredsType>({
         email: '',
@@ -53,7 +62,7 @@ const Login = () => {
         if (userdata) {
           setGetData(userdata);
   
-          getAccountData.map((doc) => (
+          getAccountData.map((doc: docType) => (
             dispatch(saveAccount({
               firstname: doc.FirstName,
               lastname: doc.LastName,
@@ -86,10 +95,11 @@ const Login = () => {
             navigate('/');
         }, 1000);
 
-      } catch (error:  unknown) {
+      } catch (error: unknown) {
+        const autherror = error as authError //type assertion
         setVisible(true);
          // Handle login errors
-      switch (error.code) {
+      switch (autherror.code) {
          case "auth/user-not-found":
            console.log("User not found");
            setStatus('User not found');

@@ -1,4 +1,4 @@
-import { PenSquare, Pencil, RotateCcw, Send, Smile, X } from 'lucide-react'
+import { Pencil, RotateCcw, Send, Smile, X } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import  noProfile  from '../assets/user-orange.png'
 import { auth, database } from '@/Firebase/firebase'
@@ -8,7 +8,8 @@ import  { EmojiStyle } from 'emoji-picker-react';
 import Picker from 'emoji-picker-react';
 import { clearStatus, updateStatus } from '@/States/statusSlice'
 import { newPostStatus } from '@/States/createNewSlice'
-import { useNavigate } from 'react-router-dom'
+
+
 
 type itemMapType ={
     UserId: string, 
@@ -23,9 +24,17 @@ type textInputType = {
     content: string 
 } 
 
+interface DiaryItem {
+    UserId: string, 
+    title: string,
+    diary: string, 
+    date: string, 
+    uid: string, 
+}
+
 const ViewDiary = () => {
     const [edit, setEdit] = useState(false);
-    const [data, setData] = useState([]);
+    const [data, setData] = useState<DiaryItem[]>([]);
     const [textInput, setTextInput] = useState<textInputType>({
         title: '',
         content: '',
@@ -41,11 +50,8 @@ const ViewDiary = () => {
     const status = useAppSelector((state) => state.getStatus);
     const dispatch = useAppDispatch();
     const defaultContext = useAppSelector((state) => state.getInput);
-    const CreateNewPost = useAppSelector(state => state.getPostStatus);
+    //const CreateNewPost = useAppSelector(state => state.getPostStatus);
 
-    const navigate = useNavigate();
-
-  
     //const defaultContextDispatch = useAppDispatch(); 
   
    
@@ -59,9 +65,11 @@ const ViewDiary = () => {
            setData([]);
 
            if(rawData !== null) {
-             Object.values(rawData).map(items => {
-                setData(prev => [...prev, items]);
-             })
+           // Object.values(rawData).map(items => {
+            //    setData(prev => [...prev, items]);
+           //  })
+             const items = Object.values(rawData) as DiaryItem[]; // Cast to the DiaryItem[] type
+             setData(items);
            }
            console.log(data);
         })
@@ -115,18 +123,14 @@ const ViewDiary = () => {
     });   //update the selected diary
 
 
-    dispatch(updateStatus('Successfully updated'));
-
       setTextInput({
         title: '',
         content: '',
       })
       setEdit(false);
-
-      setTimeout(() => {
-
-      }, 1000);
-       }
+      dispatch(newPostStatus(true));
+      
+  }
        catch (err) { 
           console.log(err);
           dispatch(updateStatus('Successfully updated'));

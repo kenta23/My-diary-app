@@ -1,4 +1,3 @@
-import React from 'react'
 import confetti from '../assets/confetti.png'
 import welcome from '../assets/welcome pic.png'
 

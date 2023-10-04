@@ -7,14 +7,11 @@ import noprofile  from '../assets/no-profile.png'
 import book from '../assets/booklet.png'
 import { auth, db, store} from '@/Firebase/firebase'
 import { createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth'
-import { error } from 'console'
 import { useNavigate } from 'react-router-dom'
-import { addDoc, collection, doc } from 'firebase/firestore'
+import { addDoc, collection } from 'firebase/firestore'
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
-import axios from 'axios'
 import { useAppDispatch, useAppSelector } from '@/States/hook'
 import { addUrl } from '@/States/imageUrl'
-import { saveAccount } from '@/States/SaveAccountLogin'
 import { clearStatus, updateStatus } from '@/States/statusSlice'
 
 const formStyles: CSSProperties = {
@@ -35,14 +32,6 @@ type userDataType = {
   userId?: React.ReactNode,
  
 }
-/*const user: userDataType = {
-  firstname: '',
-  lastname: '',
-  email: '',
-  password: '',
-}
-
-*/
 
 const Register = () => {
   const [userData, setUserData] = useState<userDataType>({
@@ -54,13 +43,9 @@ const Register = () => {
   });
 
   
-
- 
-
- 
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [visible, setVisible] = useState(false);
-  const [fileUpload, setFileUpload] = useState<Blob | Uint8Array | ArrayBuffer | null>(null);
+  const [fileUpload, setFileUpload] = useState<Blob | Uint8Array | ArrayBuffer >();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   const navigate = useNavigate();
@@ -144,27 +129,15 @@ function updatingStatus(status: string) {
  const uploadImage = async () => {
   try {
     // Upload the profile picture to Firebase Storage
-    const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${fileUpload?.name}`);
-    await uploadBytes(storageRef, fileUpload); // Assuming fileUpload is a Blob or File object
+    const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${fileUpload}`);
+    await uploadBytes(storageRef, fileUpload!); // Assuming fileUpload is a Blob or File object
 
     // Get the download URL of the uploaded image
     const downloadURL = await getDownloadURL(storageRef);
 
     //add the download url to the imageUrl state reducer
     dispatch(addUrl(downloadURL));
-
-    //add this to the json file 
-    const userDataToSend = {
-      imageUrl: downloadURL, // Include the image URL
-      uid: auth.currentUser?.uid,
-    };
-
-    // Send this data to the server using a separate API request
-    await axios.post('http://localhost:3000/api/images', userDataToSend);
-    console.log('image sent to server ');
-   
   } catch (err) {
-    
     console.error('Image upload or data sending failed:', err);
   }
 };
@@ -176,8 +149,8 @@ const createAccount = async () => {
       console.log("Account created", userData.email, userData.password);
 
         // Upload the profile picture to Firebase Storage
-        const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${fileUpload?.name}`);
-       await uploadBytes(storageRef, fileUpload); // Assuming fileUpload is a Blob or File object
+      const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${fileUpload}`);
+       await uploadBytes(storageRef, fileUpload!); // Assuming fileUpload is a Blob or File object
      // Get the download URL of the uploaded image
       const downloadURL = await getDownloadURL(storageRef);
      

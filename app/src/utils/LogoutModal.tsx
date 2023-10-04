@@ -1,6 +1,6 @@
 import { Fragment, useRef } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { AlertTriangle, Info } from 'lucide-react'
+import { Info } from 'lucide-react'
 
 type propsType = {
     openDialog: boolean,

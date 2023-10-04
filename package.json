@@ -5,7 +5,7 @@
     "@headlessui/react": "^1.7.17",
     "@mui/material": "^5.14.7",
     "@reduxjs/toolkit": "^1.9.5",
-    "date-and-time": "^3.0.2",
+    "date-and-time": "^3.0.3",
     "emoji-mart": "^5.5.2",
     "emoji-picker-react": "^4.4.12",
     "firebase": "^10.3.0",
@@ -17,6 +17,7 @@
     "uid": "^2.0.2"
   },
   "devDependencies": {
+    "@types/date-and-time": "^3.0.3",
     "@types/node": "^20.5.7"
   }
 }

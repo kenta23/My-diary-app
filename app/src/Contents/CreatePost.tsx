@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import React, {useEffect, useState } from 'react'
 import { PenSquare, Pencil, RotateCcw, Send, Smile } from 'lucide-react'
 import  noProfile  from '../assets/user-orange.png'
 import  { EmojiStyle } from 'emoji-picker-react';
 import Picker from 'emoji-picker-react';
 import { getDatabase, ref, set, } from 'firebase/database';
 import { auth } from '@/Firebase/firebase';
-import date from 'date-and-time'
+import date from 'date-and-time';
 import { useAppDispatch, useAppSelector } from '@/States/hook';
 import { uid } from 'uid';
 import { clearStatus, updateStatus } from '@/States/statusSlice';
-import { saveTitleAndContext } from '@/States/savingInput';
 import { newPostStatus } from '@/States/createNewSlice';
 
 type inpuTypes = {
@@ -41,6 +40,12 @@ const CreatePost = () => {
 
   let contentPost;
   //get the user auth id 
+
+  useEffect(() => {
+     if(createPostStatus) {
+       console.log('the value of createPostStatus is', createPostStatus.value);
+     }
+  }, [createPostStatus, createPostStatus.value]);
   
    const handleEmojiClick = (emoji: string) => {
      //add the emoji to the input state
@@ -178,7 +183,7 @@ if(!createPostStatus.value) {
      <div className='absolute top-[120px] left-[35%] h-screen'>
        {visible && <h1 className='duration-150 font-inter text-[12px] md:text-[14px] bg-[#353027] w-fit text-white py-2 rounded-[20px] px-3 bottom-5 text-center'>{status.value}</h1>}
      </div> 
-     {contentPost}
+        {contentPost}
    </div> 
   ) 
 }

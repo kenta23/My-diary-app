@@ -1,17 +1,14 @@
 import { ArrowLeft, LogOut } from 'lucide-react'
-import React, { ReactElement, ReactHTMLElement, ReactNode, useEffect, useState } from 'react'
-import profile from '../assets/no-profile.png'
+import React, {useEffect, useState } from 'react'
 import TextField from '@mui/material/TextField'
 import { useNavigate } from 'react-router-dom'
 import { auth, db, store } from '@/Firebase/firebase'
-import { DocumentData, collection, deleteDoc, deleteField, doc, getDoc, getDocs, onSnapshot, query, updateDoc, where } from 'firebase/firestore'
+import { DocumentReference, collection, deleteDoc, doc, getDocs, query, updateDoc, where } from 'firebase/firestore'
 import { useAppDispatch, useAppSelector } from '@/States/hook'
 import { clearStatus, updateStatus } from '@/States/statusSlice'
 import { saveAccount, updateProfileDisplay } from '@/States/SaveAccountLogin'
 import { accountInfoState } from '@/utils/reduxTypes'
-import axios from 'axios'
 import { deleteObject, getDownloadURL, listAll, ref, uploadBytes } from 'firebase/storage'
-import { addUrl } from '@/States/imageUrl'
 import AccountDeletionModal from '@/utils/AccountDeletionModal'
 import { deleteUser, signOut } from 'firebase/auth'
 import LogoutModal from '@/utils/LogoutModal'
@@ -31,9 +28,10 @@ type AccountUserType = {
   password: string | null | undefined,
   profileDisplay?: string | null | undefined,
 }
+
 const Profile = () => {
   const [changePass, setChangePass] = useState<boolean>(false);
-  const [userData, setUserData] = useState<DocumentData>([]);
+  const [userData, setUserData] = useState<documentType[]>([]);
   const [updateAccount, setUpdateAccount] = useState<AccountUserType>({
       firstname: '',
       lastname: '',
@@ -42,11 +40,11 @@ const Profile = () => {
       profileDisplay: ''
   })
   const [confirmPassword, setConfirmPassword] = useState<string | null | undefined >('');
-  const [documentReference, setDocumentReference] = useState<unknown[]>([]);
+  const [documentReference, setDocumentReference] = useState<DocumentReference[]>([]);
   const [visible, setVisible] = useState(false);
   const accountInfo: accountInfoState = useAppSelector(state => state.getAccount) ;
   //image file
-  const [imageFile, setImageFile] = useState< Blob | Uint8Array | ArrayBuffer | undefined | ReactNode>();
+  const [imageFile, setImageFile] = useState< Blob | Uint8Array | ArrayBuffer | undefined>();
   const [imageUrl, setImageUrl] = useState<string | null| undefined>(null);
 
 
@@ -67,7 +65,7 @@ useEffect(() => {
     const data = await getDocs(collectionData);
     
     const userdata = data.docs
-     .map((doc) => doc.data()).filter(data => data.UserId === auth.currentUser?.uid);
+     .map((doc) => doc.data() as documentType).filter(data => data.UserId === auth.currentUser?.uid);
 
    
     if (userdata.length > 0) {
@@ -114,7 +112,7 @@ async function formSubmit(e: React.FormEvent) {
     const querySnapshot = await getDocs(userQuery);
   
     // Initialize an array to store the document references
-    const documentReferences: unknown[] = [];
+    const documentReferences: DocumentReference[] = [];
   
     querySnapshot.forEach((doc) => {
       // Push the document reference, not the document data
@@ -131,8 +129,8 @@ async function updateData() {
   try {
     // Upload the profile picture to Firebase Storage
    if(imageFile !== undefined && imageFile !== null) {
-    const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${imageFile?.name}`);
-    await uploadBytes(storageRef, imageFile); // Assuming fileUpload is a Blob or File object
+    const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${imageFile}`);
+    await uploadBytes(storageRef, imageFile!); // Assuming fileUpload is a Blob or File object
 
     // Get the download URL of the uploaded image
     const downloadURL = await getDownloadURL(storageRef);
@@ -141,7 +139,15 @@ async function updateData() {
     downloadURL.length > 0 && dispatch(updateProfileDisplay(downloadURL));
     console.log('url', downloadURL);
     console.log('image file updated')
-   } 
+
+  dispatch(updateStatus('Successfully uploaded'));
+    setVisible(true);
+
+   setTimeout(() => {
+    dispatch(clearStatus());
+    setVisible(false);
+  }, 1000)
+} 
    //for firebase firestore datas
  if(updateAccount.firstname === '' || updateAccount.lastname === '' || updateAccount.email === '' || updateAccount.password === '' || confirmPassword === '') {
     console.log('Please complete all the details');
@@ -167,11 +173,11 @@ else {
   for (const docRef of documentReference) {
     // Use the document reference to update the document
     await updateDoc(docRef, {
-      FirstName: updateAccount.firstname,
-      LastName: updateAccount.lastname,
-      Email: updateAccount.email,
-      Password: updateAccount.password,
-      ProfileDisplay: accountInfo.value.ProfileDisplay
+      FirstName: updateAccount.firstname || null,
+      LastName: updateAccount.lastname || null,
+      Email: updateAccount.email || null,
+      Password: updateAccount.password || null,
+      ProfileDisplay: accountInfo.value.ProfileDisplay || null
     });
   }
 
@@ -240,12 +246,14 @@ async function handleDelete() {
 
      //DELETE AUTH
      const user = auth.currentUser;
-     deleteUser(user).then(() => {
-      console.log('Successfully deleted account')
-    }).catch((err) => {
-      console.log('Something went wrong');
-      console.log(err);
-    })
+     if(user) {
+      deleteUser(user).then(() => {
+        console.log('Successfully deleted account')
+      }).catch((err) => {
+        console.log('Something went wrong');
+        console.log(err);
+      })
+     }
   }
 }
   catch(err) {
@@ -275,7 +283,7 @@ async function handleDelete() {
     setTimeout(() => {
         setVisible(false);
         dispatch(clearStatus());
-        auth.signOut();
+        signOut(auth);
         navigate('/login');
     }, 2000)
   }
@@ -284,11 +292,10 @@ async function handleDelete() {
 
 
 return (
-  <div className='w-full h-full relative'>
+<div className='min-w-min bg-bg min-h-max '>
+  <div className='w-full h-fit relative'>
     <form onSubmit={formSubmit} className='font-kaisei w-full h-auto mb-5'>
         <ArrowLeft color='#EA9619' className='w-[26px] md:w-[30px] lg:w-[35px] h-auto object-cover mt-[30px] ml-[21px] cursor-pointer' onClick={() => navigate('/')}/>
-
- 
          <h1 className='mt-[25px] ml-[21px] text-[20px] md:text-[25px] lg:text-[30px] font-bold'>Personal Information</h1>
 
       {userData.map((data: documentType) => (
@@ -386,6 +393,7 @@ return (
    />}
   
   </div>
+</div>
   ) 
 } 
     

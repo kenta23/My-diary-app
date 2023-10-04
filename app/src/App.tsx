@@ -1,29 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Navbar from "./Components/Navbar";
-import { useAppDispatch, useAppSelector } from "./States/hook"
-import CreatePost from "./Contents/CreatePost";
+import { useAppDispatch } from "./States/hook"
 import Diary from "./Contents/Diary";
-import ViewDiary from "./Contents/ViewDiary";
-import Login from "./Starting page/Login";
-import { DocumentData, collection, getDocs, startAfter } from "firebase/firestore";
+import { collection, getDocs} from "firebase/firestore";
 import { auth, db } from "./Firebase/firebase";
 import { saveAccount } from "./States/SaveAccountLogin";
 
-type datatype = {
-  FirstName: string,
-  LastName: string,
-  Email: string
-  Password: string,
-  ProfileDisplay: string,
-  UserId?: string
-}
-
-
 function App() {
-  const [getAccountData, setGetData] = useState<DocumentData>([]);
   const dispatch = useAppDispatch();
-  const AccountInfo = useAppSelector((state) => state.getAccount);
-
   const collectionData = collection(db, 'Users');
   
   //find exact user's data from firebase database 
@@ -41,7 +25,6 @@ function App() {
     }
   
    //store the value of reducer to the state
-  
  } 
    getData(); 
 }, []);

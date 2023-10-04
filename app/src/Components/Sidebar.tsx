@@ -4,19 +4,14 @@ import user from '../assets/user.png'
 import { auth, database } from '@/Firebase/firebase'
 import { ref, onValue, remove } from 'firebase/database'
 import { useNavigate } from 'react-router-dom'
-import { uid } from 'uid'
 import { useAppDispatch, useAppSelector } from '@/States/hook'
-import { clicked, notClicked } from '@/States/Slice'
+import { clicked } from '@/States/Slice'
 import { putDiaryuid } from '@/States/diarySlice'
-import { close, open } from '@/States/menuSlice'
+import {  open } from '@/States/menuSlice'
 import { saveTitleAndContext } from '@/States/savingInput'
-import { DocumentData, collection, getDocs } from 'firebase/firestore'
-import { ref as storageRef } from 'firebase/storage'
-import { getDownloadURL } from 'firebase/storage'
-import { addUrl } from '@/States/imageUrl'
-import axios from 'axios'
 import { newPostStatus } from '@/States/createNewSlice'
 import { accountInfoState } from '@/utils/reduxTypes'
+import { clearStatus, updateStatus } from '@/States/statusSlice'
 
 type dataTypes = {  
     UserId: string | null,
@@ -26,22 +21,12 @@ type dataTypes = {
     uid: string | null,
 }
 
-type imageUrlType = {
-  imageUrl?: string | null,
-  uid?: string | null,
-}
-
-//export const ContentValues = createContext<string | null>(null);
-
 const Sidebar = () => {
    const [clickMenu, setClickMenu] = useState<number | null>(null);
    const [contentClicked, setContentClicked] = useState<number | null>(null);
-   const [data, setData] = useState<string[] | unknown >([]);
+   const [data, setData] = useState<dataTypes[]>([]);
 
    const [deleted, setDeleted] = useState(false);
-   const [name, setName] = useState<string | null>('');
-   const [collectionImage, setCollectionImage] = useState([]);
-   const [imageSrc, setImageSrc] = useState<DocumentData>([]);
    const accountInfo: accountInfoState = useAppSelector(state => state.getAccount);
    
   
@@ -59,7 +44,7 @@ const Sidebar = () => {
         const dataVal = snapshot.val()
         setData([]);
         if(dataVal !== null) { 
-          const dataArray: string[] | unknown = Object.values(dataVal).map((datas: unknown) => datas)       
+          const dataArray = Object.values(dataVal).map((datas) => datas) as dataTypes[];     
           setData(dataArray);
         }
       })
@@ -81,15 +66,11 @@ const Sidebar = () => {
         dispatch(clicked());
         dispatch(putDiaryuid(uid)); //for getting the specific uid for viewing diary 
     
-        dispatch(saveTitleAndContext({title: titleP, diary: diaryP}));
-       
-      }
-      
+        dispatch(saveTitleAndContext({title: titleP, diary: diaryP}));  
+      }     
     }
     
 
-    
- 
     //REMOVE ITEMS 
  const removeDiary = async(userId: string | null) => {
     const itemRef = ref(database, `Diary/${userId}`) // Replace with your data path
@@ -98,6 +79,12 @@ const Sidebar = () => {
       await remove(itemRef);
       setDeleted(true);  
       dispatch(newPostStatus(true));
+
+     dispatch(updateStatus('Successfully Deleted')); 
+     setTimeout(() => {
+       dispatch(clearStatus());
+     }, 1000)
+
     }
     catch (err) {
       console.log(err);
@@ -105,7 +92,7 @@ const Sidebar = () => {
   }
 
   
-  console.log(data)
+  console.log('DATA', data)
   return (
   <>
   {/**FOR MOBILE DEVICES */}
@@ -154,12 +141,10 @@ const Sidebar = () => {
               </div>
           </div>
         </div>
-    </div> 
-    
+    </div>  
   </div> 
  </>
- 
-)
+ )
 }
 
 export default Sidebar

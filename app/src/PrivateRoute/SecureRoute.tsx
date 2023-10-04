@@ -1,4 +1,3 @@
-import React from 'react'
 import { auth } from '@/Firebase/firebase'
 import { Outlet, Navigate } from 'react-router-dom';
 const SecureRoute = () => {
