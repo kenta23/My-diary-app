@@ -286,7 +286,7 @@ const createAccount = async () => {
                      <input type="file" className='p-2 bg-primary border-none rounded-[10px] text-dark cursor-pointer' id="fileInput"  accept="image/*" placeholder='Upload Display Photo' onChange={handleFileChange}/>
                  </div>
 
-                 <button type='submit' className='font-kaisei leading-tight font-medium bg-orange-400 hover:bg-green-400 transition-all duration-150 ease-in-out text-white text-center md:px-[69px] px-[40px] py-[10px] md:py-[18px] rounded-[20px] ' onClick={saveData}>Register Account</button>
+                 <button type='submit' className='font-kaisei leading-tight font-medium bg-logo hover:bg-orange-400 active:bg-orange-600 transition-all duration-200 ease-in-out text-white text-center md:px-[69px] px-[40px] py-[10px] md:py-[18px] rounded-[20px] ' onClick={saveData}>Register Account</button>
              </div>
            </div>
        </div>

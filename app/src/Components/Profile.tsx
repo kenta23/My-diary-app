@@ -47,6 +47,9 @@ const Profile = () => {
   const [imageFile, setImageFile] = useState< Blob | Uint8Array | ArrayBuffer | undefined>();
   const [imageUrl, setImageUrl] = useState<string | null| undefined>(null);
 
+  //change information state
+  const [changes, setChanges] = useState<boolean>(false);
+
 
   const navigate = useNavigate(); 
 
@@ -66,14 +69,12 @@ useEffect(() => {
     
     const userdata = data.docs
      .map((doc) => doc.data() as documentType).filter(data => data.UserId === auth.currentUser?.uid);
-
-   
+     setUserData(userdata); //save all the user data info in local state
+     console.log('userdata', userData);
     if (userdata.length > 0) {
       userdata.forEach((data) => {
-        dispatch(saveAccount(data)); //save all the user info in state
+        dispatch(saveAccount(data)); //save all the user info in reducer state
         console.log('my data in save account state', accountInfo); 
-        setUserData(userdata); 
-        console.log('userdata', userData);
       });
     }
 
@@ -93,7 +94,7 @@ useEffect(() => {
   }
  
     getData(); 
-}, [accountInfo, collectionData, dispatch, updateAccount, userData])
+}, [changes])
 
 useEffect(() => {
   auth.onAuthStateChanged((user) => {
@@ -104,7 +105,7 @@ useEffect(() => {
 }, [navigate])
 
 
-async function formSubmit(e: React.FormEvent) {
+async function formSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
   
     const ref = collection(db, 'Users');
@@ -188,7 +189,8 @@ else {
     dispatch(clearStatus());
     setVisible(false);
   }, 1000)
-}   
+}
+   setChanges(true);   
   } catch(err) {
     console.log(err);
    }

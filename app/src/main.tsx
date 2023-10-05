@@ -11,6 +11,7 @@ import SucessfulRegistered from './Starting page/SucessfulRegistered.tsx'
 import PrivateRoutes from './PrivateRoute/PrivateRoutes.tsx'
 import Profile from './Components/Profile.tsx'
 import CreatePost from './Contents/CreatePost.tsx'
+import Verification from './Components/verification.tsx'
 
 
 
@@ -23,12 +24,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                   <Route path='/' element={<App />}/>
                   <Route path="/sucessful" element={<SucessfulRegistered/>} />
                   <Route path='/createnewpost' element={<CreatePost />} />
-                  <Route path='/reset' element={<Verification />} />
+                  <Route path='/Profile' element={<Profile />} />
                </Route>
   
                 <Route path='/register' element={<Register />}/>
+                <Route path='/reset' element={<Verification />} />
                 <Route path='/login' element={<Login />}/>
-                <Route path='/Profile' element={<Profile />} />
+              
             </Routes>
        </BrowserRouter>
     </Provider> 
