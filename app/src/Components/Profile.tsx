@@ -93,7 +93,7 @@ useEffect(() => {
   }
  
     getData(); 
-}, [])
+}, [accountInfo, collectionData, dispatch, updateAccount, userData])
 
 useEffect(() => {
   auth.onAuthStateChanged((user) => {

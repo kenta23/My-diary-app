@@ -19,10 +19,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <Provider store={store}>
        <BrowserRouter >
           <Routes >
-               <Route element={<PrivateRoutes />}> {/*it only renders when the user account existed */}
+               <Route element={<PrivateRoutes />}> {/*it only be accessed when the user account existed */}
                   <Route path='/' element={<App />}/>
                   <Route path="/sucessful" element={<SucessfulRegistered/>} />
                   <Route path='/createnewpost' element={<CreatePost />} />
+                  <Route path='/reset' element={<Verification />} />
                </Route>
   
                 <Route path='/register' element={<Register />}/>

@@ -139,6 +139,8 @@ const Login = () => {
     console.log(userCreds);
     console.log(auth.currentUser?.uid);
 
+    
+
   return (
     <div className='bg-bg  w-full h-fit lg:h-screen  max-w-full min-w-fit'>
         <div className='flex flex-col lg:flex-row justify-between h-full w-full'>
@@ -185,6 +187,7 @@ const Login = () => {
                         />
 
                         <button className='font-kaisei  leading-tight font-medium bg-orange-400 text-white md:w-[201px] text-center md:px-[69px] px-[55px] py-[10px] md:py-[18px] rounded-[20px]' type='submit'>Log in</button>
+                        <span className='font-kaisei font-medium text-gray cursor-pointer underline text-[17px]' onClick={() => navigate('')}>Forgot Password?</span>
                     </form>
 
                     <h1 className='md:text-[22px] mb-[50px] font-kaisei'>Don't have an account? <NavLink to={'/register'} className='text-[#E57E1E] font-semibold cursor-pointer'>Sign up</NavLink></h1>
