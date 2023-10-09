@@ -11,7 +11,8 @@ import {  open } from '@/States/menuSlice'
 import { saveTitleAndContext } from '@/States/savingInput'
 import { newPostStatus } from '@/States/createNewSlice'
 import { accountInfoState } from '@/utils/reduxTypes'
-import { clearStatus, updateStatus } from '@/States/statusSlice'
+import { updateStatus } from '@/States/statusSlice'
+
 
 type dataTypes = {  
     UserId: string | null,
@@ -79,12 +80,7 @@ const Sidebar = () => {
       await remove(itemRef);
       setDeleted(true);  
       dispatch(newPostStatus(true));
-
-     dispatch(updateStatus('Successfully Deleted')); 
-     setTimeout(() => {
-       dispatch(clearStatus());
-     }, 1000)
-
+      dispatch(updateStatus("Deleted Successfully"));
     }
     catch (err) {
       console.log(err);
@@ -92,7 +88,6 @@ const Sidebar = () => {
   }
 
   
-  console.log('DATA', data)
   return (
   <>
   {/**FOR MOBILE DEVICES */}

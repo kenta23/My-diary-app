@@ -1,30 +1,16 @@
-import {useAppDispatch, useAppSelector } from '@/States/hook';
+import {useAppSelector } from '@/States/hook';
 import CreatePost from './CreatePost';
 import ViewDiary from './ViewDiary';
-import { useEffect, useState } from 'react';
-import { clearStatus, updateStatus } from '@/States/statusSlice';
+import { useState } from 'react';
+
 
 const Diary = () => {
     const clicked = useAppSelector(state => state.diary.value);
-    const [visible, setVisible] = useState<boolean>(false);
-    const dispatch = useAppDispatch();
+    const [visible] = useState<boolean>(false);
     const getStatus = useAppSelector((state) => state.getStatus);
 
-
-    //if status value changed then re render the page
-    useEffect(() => {
-      if(getStatus.value) {
-        dispatch(updateStatus("Successfully deleted"));
-        setVisible(true);
-
-        setTimeout(() => {
-           dispatch(clearStatus());
-           setVisible(false);
-        }, 2000)
-      }
-   }, [dispatch, getStatus.value]);
-  
     let content;
+
     if(clicked) {
         content = (
             <div>
@@ -38,7 +24,6 @@ const Diary = () => {
               <CreatePost />
             </div>
         )
-
     }
 
   return (

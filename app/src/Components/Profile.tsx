@@ -44,9 +44,9 @@ const Profile = () => {
   const [visible, setVisible] = useState(false);
   const accountInfo: accountInfoState = useAppSelector(state => state.getAccount) ;
   //image file
-  const [imageFile, setImageFile] = useState< Blob | Uint8Array | ArrayBuffer | undefined>();
+  const [imageFile, setImageFile] = useState< Blob | Uint8Array | ArrayBuffer>();
   const [imageUrl, setImageUrl] = useState<string | null| undefined>(null);
-
+  const [picture, setPicture] = useState<string>('');
   //change information state
   const [changes, setChanges] = useState<boolean>(false);
 
@@ -56,6 +56,7 @@ const Profile = () => {
   const collectionData = collection(db, 'Users'); 
   const status = useAppSelector(state => state.getStatus);
   const dispatch = useAppDispatch();
+  
 
 
   //FOR MODAL ACCOUNT DELETION AND LOGOUT DIALOG
@@ -70,12 +71,14 @@ useEffect(() => {
     const userdata = data.docs
      .map((doc) => doc.data() as documentType).filter(data => data.UserId === auth.currentUser?.uid);
      setUserData(userdata); //save all the user data info in local state
-     console.log('userdata', userData);
+
+     console.log('userdata', userdata);
+
     if (userdata.length > 0) {
       userdata.forEach((data) => {
         dispatch(saveAccount(data)); //save all the user info in reducer state
-        console.log('my data in save account state', accountInfo); 
       });
+      setChanges(false);
     }
 
    if(accountInfo) {
@@ -90,11 +93,13 @@ useEffect(() => {
 
    setConfirmPassword(accountInfo.value.Password);
    console.log('update account', updateAccount);
+   console.log('account info updated', accountInfo)
    }  
   }
  
     getData(); 
 }, [changes])
+
 
 useEffect(() => {
   auth.onAuthStateChanged((user) => {
@@ -123,31 +128,27 @@ async function formSubmit(e: React.FormEvent<HTMLFormElement>) {
   
     // Set the document references in state
     setDocumentReference(documentReferences);
+  
     await updateData(); 
+
 }
   
 async function updateData() {
   try {
     // Upload the profile picture to Firebase Storage
-   if(imageFile !== undefined && imageFile !== null) {
+   if(imageFile) {
     const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${imageFile}`);
-    await uploadBytes(storageRef, imageFile!); // Assuming fileUpload is a Blob or File object
+    await uploadBytes(storageRef, imageFile); // Assuming fileUpload is a Blob or File object
 
     // Get the download URL of the uploaded image
     const downloadURL = await getDownloadURL(storageRef);
 
     //add the download url to account statae to only update the image file when submitted
-    downloadURL.length > 0 && dispatch(updateProfileDisplay(downloadURL));
+    dispatch(updateProfileDisplay(downloadURL));
+    setPicture(downloadURL);
+
     console.log('url', downloadURL);
-    console.log('image file updated')
-
-  dispatch(updateStatus('Successfully uploaded'));
-    setVisible(true);
-
-   setTimeout(() => {
-    dispatch(clearStatus());
-    setVisible(false);
-  }, 1000)
+    console.log('Successfully uploaded new profile image');
 } 
    //for firebase firestore datas
  if(updateAccount.firstname === '' || updateAccount.lastname === '' || updateAccount.email === '' || updateAccount.password === '' || confirmPassword === '') {
@@ -178,7 +179,7 @@ else {
       LastName: updateAccount.lastname || null,
       Email: updateAccount.email || null,
       Password: updateAccount.password || null,
-      ProfileDisplay: accountInfo.value.ProfileDisplay || null
+      ProfileDisplay: picture
     });
   }
 
@@ -218,6 +219,7 @@ else {
         setImageFile(file);
       }
   }
+
 
 async function handleDelete() {
      //delete profile image
@@ -377,7 +379,7 @@ return (
       
 
        <div className='flex justify-between mx-8 mt-8'>
-           <button className='w-[127px] h-[39px] pl-[9px] pr-2 pt-2 pb-[7px] bg-amber-500 rounded-[20px] justify-center items-center inline-flex text-white text-base font-medium leading-normal' type='submit' >Save Changes</button>
+           <button className='w-[127px] h-[39px] pl-[9px] pr-2 pt-2 pb-[7px] bg-amber-500 rounded-[20px] justify-center items-center inline-flex text-white text-base font-medium leading-normal' type='submit'>Save Changes</button>
            <button className='w-[98px] h-[39px] pl-[22px] pr-[23px] pt-2 pb-[7px] bg-red-600 rounded-[20px] justify-center items-center inline-flex text-white text-base font-medium leading-normal' type='button' onClick={() => setOpenLogoutDialog(true)}><LogOut color='#0000' size={5}/>Logout</button>
        </div>
     </form>

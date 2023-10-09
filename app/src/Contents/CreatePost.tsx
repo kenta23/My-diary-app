@@ -3,7 +3,7 @@ import { PenSquare, Pencil, RotateCcw, Send, Smile } from 'lucide-react'
 import  noProfile  from '../assets/user-orange.png'
 import  { EmojiStyle } from 'emoji-picker-react';
 import Picker from 'emoji-picker-react';
-import { getDatabase, ref, set, } from 'firebase/database';
+import { getDatabase, ref, set,} from 'firebase/database';
 import { auth } from '@/Firebase/firebase';
 import date from 'date-and-time';
 import { useAppDispatch, useAppSelector } from '@/States/hook';
@@ -39,13 +39,17 @@ const CreatePost = () => {
   const createPostStatus = useAppSelector(state => state.getPostStatus);
 
   let contentPost;
-  //get the user auth id 
 
   useEffect(() => {
-     if(createPostStatus) {
-       console.log('the value of createPostStatus is', createPostStatus.value);
+     if(status) {
+        setVisible(true);
+
+        setTimeout(() => {
+          dispatch(clearStatus());
+          setVisible(false);
+        }, 1000);
      }
-  }, [createPostStatus, createPostStatus.value]);
+  }, [status, status.value]);
   
    const handleEmojiClick = (emoji: string) => {
      //add the emoji to the input state

@@ -12,6 +12,7 @@ import PrivateRoutes from './PrivateRoute/PrivateRoutes.tsx'
 import Profile from './Components/Profile.tsx'
 import CreatePost from './Contents/CreatePost.tsx'
 import Verification from './Components/verification.tsx'
+import ErrorPage from './Starting page/ErrorPage.tsx'
 
 
 
@@ -27,6 +28,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                   <Route path='/Profile' element={<Profile />} />
                </Route>
   
+                {/**FOR ERROR ROUTING PAGE */}
+                <Route path='*' element={<ErrorPage />}/>
+
                 <Route path='/register' element={<Register />}/>
                 <Route path='/reset' element={<Verification />} />
                 <Route path='/login' element={<Login />}/>

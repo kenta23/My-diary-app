@@ -106,6 +106,7 @@ const ViewDiary = () => {
     const updateDiary = async() => {
        const diaryRef = ref(database, `Diary/${tempUid}`);
 
+       dispatch(updateStatus('Successfully updated'));
        setVisible(true);
        setTimeout(() => {
           setVisible(false);
@@ -129,11 +130,9 @@ const ViewDiary = () => {
       })
       setEdit(false);
       dispatch(newPostStatus(true));
-      
   }
        catch (err) { 
           console.log(err);
-          dispatch(updateStatus('Successfully updated'));
        }
     }
 
@@ -208,7 +207,7 @@ return (
      </div>
     </div> 
 
-     </div>
+    </div>
 
 
  <div className='flex flex-col float-right  items-center gap-1'>
@@ -230,8 +229,6 @@ return (
          <h1 className='text-orange-500 font-semibold text-[20px] cursor-pointer mx-[15px] mb-[10px]' onClick={() => dispatch(newPostStatus(true))}>Create New</h1>
   </div>
 ))}  
-
-
 </div>
    
   )
