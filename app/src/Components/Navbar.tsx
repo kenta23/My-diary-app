@@ -33,7 +33,7 @@ const Navbar = () => {
         </div> 
 
         <div className='profileicon cursor-pointer visible lg:invisible'>
-           <img src={accountInfo.value.ProfileDisplay? accountInfo.value.ProfileDisplay : userIcon} alt="" className='w-[35px] h-auto cursor-pointer' onClick={() => navigate('/Profile')}/>
+           <img src={accountInfo.value.ProfileDisplay? accountInfo.value.ProfileDisplay : userIcon} alt="" className='w-[35px] rounded-full h-auto cursor-pointer' onClick={() => navigate('/Profile')}/>
         </div>
           
       </div> 

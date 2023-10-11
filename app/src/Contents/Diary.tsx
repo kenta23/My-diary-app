@@ -9,6 +9,7 @@ const Diary = () => {
     const [visible] = useState<boolean>(false);
     const getStatus = useAppSelector((state) => state.getStatus);
 
+
     let content;
 
     if(clicked) {

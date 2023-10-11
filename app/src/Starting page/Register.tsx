@@ -157,12 +157,11 @@ const createAccount = async () => {
 
       /*ADD DATA TO THE FIRESTORE */
       const collectiondata =  collection(db, "Users");
-
+      
       await addDoc(collectiondata, {
         FirstName: userData.firstname,
         LastName: userData.lastname,
         Email: userData.email,
-        Password: userData.password,
         UserId: auth.currentUser?.uid.toString(),
         ProfileDisplay: downloadURL,
       })

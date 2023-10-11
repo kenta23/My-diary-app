@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/States/hook'
 import  { EmojiStyle } from 'emoji-picker-react';
 import Picker from 'emoji-picker-react';
 import { clearStatus, updateStatus } from '@/States/statusSlice'
-import { newPostStatus } from '@/States/createNewSlice'
+import CreatePost from './CreatePost'
 
 
 
@@ -50,7 +50,9 @@ const ViewDiary = () => {
     const status = useAppSelector((state) => state.getStatus);
     const dispatch = useAppDispatch();
     const defaultContext = useAppSelector((state) => state.getInput);
-    //const CreateNewPost = useAppSelector(state => state.getPostStatus);
+    const CreateNewPost = useAppSelector(state => state.getPostStatus);
+    const [newPostState, setNewPostState] = useState<boolean>(false);
+    const profilepicture = useAppSelector(state => state.getAccount);
 
     //const defaultContextDispatch = useAppDispatch(); 
   
@@ -75,6 +77,7 @@ const ViewDiary = () => {
         })
       }
        RenderData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
 
@@ -129,11 +132,12 @@ const ViewDiary = () => {
         content: '',
       })
       setEdit(false);
-      dispatch(newPostStatus(true));
   }
        catch (err) { 
           console.log(err);
        }
+
+       setNewPostState(false);
     }
 
     const handleEmojiClick = (emoji: string) => {
@@ -153,17 +157,20 @@ const ViewDiary = () => {
     try
     {
       await remove(itemRef);
-      dispatch(newPostStatus(true));
+      setNewPostState(true)
     }
     catch (err) {
       console.log(err);
     } 
   }
+console.log(CreateNewPost.value)
+
 
 return (
-<div className='mx-[40px] lg:mx-[10] relative font-kaisei border border-[#745E3D]  flex-col items-center justify-center md:mr-[190px] lg:mr-[335px] xl:mr-[360px] w-[250px] sm:w-[400px] md:w-[550px] lg:w-[500px] xl:w-[850px]  h-max'>
- {visible && <h1 className='duration-150 font-inter absolute text-[12px] md:text-[14px] bg-[#353027] w-fit text-white py-2 rounded-[20px] px-3 top-[-70px] left-1/2 text-center'>{status.value}</h1>}
-  {data.map((item: itemMapType, id) => (
+<>
+{newPostState? <CreatePost/> : <div className='mx-[40px] lg:mx-[10] relative font-kaisei border border-[#745E3D]  flex-col items-center justify-center md:mr-[190px] lg:mr-[335px] xl:mr-[360px] w-[250px] sm:w-[400px] md:w-[550px] lg:w-[500px] xl:w-[850px]  h-max'>
+  {visible && <h1 className='duration-150 font-inter absolute text-[12px] md:text-[14px] bg-[#353027] w-fit text-white py-2 rounded-[20px] px-3 top-[-70px] left-1/2 text-center'>{status.value}</h1>}
+   {data.map((item: itemMapType, id) => (
    viewDiary === item.uid && <div key={id}>
      <div className=' flex items-center justify-center w-full h-[65px] border-b border-[#745E3D]'>
        {edit ? 
@@ -190,7 +197,7 @@ return (
      <div className='content pt-[30px] relative h-full'>
       <div className='flex justify-around xl:justify-between items-start mx-2 xl:mx-6'>
        <div className='flex flex-row items-start gap-[12px]'>
-         <img src={noProfile}  alt="" className='w-[30px] lg:w-[40px] h-auto'/>
+         <img src={profilepicture.value.ProfileDisplay? profilepicture.value.ProfileDisplay : noProfile}  alt="" className='w-[30px] rounded-full lg:w-[40px] h-auto'/>
         {edit ?
         <>
            <textarea 
@@ -221,16 +228,16 @@ return (
 
 
   <div className='flex gap-[28px] items-center justify-center mt-[25px] float-right mx-[25px]'>
-     {edit ? <X color='#DC612C' onClick={() => setEdit(false)} size={30} cursor={'pointer'}/> : <button className='text-[#DC612C] hover:text-[#e27241] duration-150 transition-all ease-in-out  cursor-pointer text-[25px] font-medium' onClick={() => handleEdit(item.uid)}>Edit</button>}
+     {edit ? <X color='#DC612C' size={30} cursor={'pointer'}/> : <button className='text-[#DC612C] hover:text-[#e27241] duration-150 transition-all ease-in-out  cursor-pointer text-[25px] font-medium' onClick={() => handleEdit(item.uid)}>Edit</button>}
      <button className='text-[#BD2323] hover:text-[#d34646] duration-150 transition-all ease-in-out cursor-pointer text-[25px] font-medium' onClick={() => removeDiary(item.uid)}>Delete</button>
   </div>
 </div>   
   </div> 
-         <h1 className='text-orange-500 font-semibold text-[20px] cursor-pointer mx-[15px] mb-[10px]' onClick={() => dispatch(newPostStatus(true))}>Create New</h1>
+         <h1 className='text-orange-500 font-semibold text-[20px] cursor-pointer mx-[15px] mb-[10px]' onClick={() => setNewPostState(true)}>Create New</h1>
   </div>
 ))}  
-</div>
-   
+</div> }
+</>
   )
 }
 

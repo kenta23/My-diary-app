@@ -37,6 +37,7 @@ const CreatePost = () => {
   const dispatch = useAppDispatch();
   const saveDiary = useAppSelector(state => state.getInput);
   const createPostStatus = useAppSelector(state => state.getPostStatus);
+  const profilepicture = useAppSelector(state => state.getAccount);
 
   let contentPost;
 
@@ -49,6 +50,7 @@ const CreatePost = () => {
           setVisible(false);
         }, 1000);
      }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, status.value]);
   
    const handleEmojiClick = (emoji: string) => {
@@ -151,7 +153,7 @@ if(!createPostStatus.value) {
   <div className='content pt-[30px] relative h-full'>
     <div className='flex justify-around xl:justify-between items-start mx-2 xl:mx-6'>
       <div className='flex flex-row items-start gap-[12px]'>
-         <img src={noProfile} alt="" className='w-[30px] lg:w-[40px] h-auto'/>
+         <img src={profilepicture.value.ProfileDisplay ? profilepicture.value.ProfileDisplay : noProfile} alt="" className='w-[30px] rounded-full lg:w-[40px] h-auto'/>
          <textarea name="post" 
             value={input.post} 
             onChange={(e) => setInput(prev => ({...prev, post: e.target.value}))} 

@@ -6,7 +6,6 @@ const initialState: accountInfoState = {
       FirstName: '',
       LastName: '',
       Email: '',
-      Password: '',
       ProfileDisplay: '', // Initialize with default value
     },
   };

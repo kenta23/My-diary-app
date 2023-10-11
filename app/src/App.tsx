@@ -27,6 +27,7 @@ function App() {
    //store the value of reducer to the state
  } 
    getData(); 
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, []);
 
 

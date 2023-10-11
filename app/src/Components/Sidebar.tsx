@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, {useEffect, useState } from 'react'
 import { AlignRight, MinusCircle, PenSquare, X } from 'lucide-react'
 import user from '../assets/user.png'
@@ -9,7 +10,6 @@ import { clicked } from '@/States/Slice'
 import { putDiaryuid } from '@/States/diarySlice'
 import {  open } from '@/States/menuSlice'
 import { saveTitleAndContext } from '@/States/savingInput'
-import { newPostStatus } from '@/States/createNewSlice'
 import { accountInfoState } from '@/utils/reduxTypes'
 import { updateStatus } from '@/States/statusSlice'
 
@@ -29,7 +29,8 @@ const Sidebar = () => {
 
    const [deleted, setDeleted] = useState(false);
    const accountInfo: accountInfoState = useAppSelector(state => state.getAccount);
-   
+  
+  
   
    const authId = auth.currentUser?.uid;
    const navigate = useNavigate();
@@ -47,6 +48,7 @@ const Sidebar = () => {
         if(dataVal !== null) { 
           const dataArray = Object.values(dataVal).map((datas) => datas) as dataTypes[];     
           setData(dataArray);
+        
         }
       })
      }
@@ -79,7 +81,7 @@ const Sidebar = () => {
     {
       await remove(itemRef);
       setDeleted(true);  
-      dispatch(newPostStatus(true));
+   
       dispatch(updateStatus("Deleted Successfully"));
     }
     catch (err) {
@@ -91,13 +93,13 @@ const Sidebar = () => {
   return (
   <>
   {/**FOR MOBILE DEVICES */}
-    <div className='bg-primary sidebar z-10 px-[15px]  min-w-[220px] lg:w-[335px] xl:w-[360px] h-screen block relative top-0'>
+    <div className='bg-primary sidebar z-10 px-[30px]  min-w-[220px] lg:w-[335px] xl:w-[360px] h-screen block relative top-0'>
       <div className='flex  flex-col gap-4 justify-between items-end '>  
        
     
            <div className='mt-[33px] flex items-center justify-around gap-[90px] lg:float-right mr-[23px] h-auto'>
               <X color='white' size={34} className='cursor-pointer lg:hidden block' onClick={() => dispatch(open())}/>
-              <img src={accountInfo.value.ProfileDisplay ? accountInfo.value.ProfileDisplay :  user} alt="" className='w-[48px] hidden lg:block cursor-pointer rounded-[20%] shadow-lg' onClick={() => navigate('/Profile')}/>
+              <img src={accountInfo.value.ProfileDisplay ? accountInfo.value.ProfileDisplay :  user} alt="" className='w-[48px] hidden lg:block cursor-pointer rounded-full shadow-lg' onClick={() => navigate('/Profile')}/>
           </div>
       
  
@@ -107,20 +109,21 @@ const Sidebar = () => {
                   <h1 className='text-center text-white font-inika sm:text-[25px] lg:text-[30px]'>{accountInfo.value.FirstName}'s Diary</h1>
 
                   {/**READ ALL THE DIARIES HERE*/}
-              <div className='min-w-auto sm:max-h-[700px] md:max-h-[850px]  lg:max-h-[950px] xl:max-h-[500px]  overflow-y-auto container  flex flex-col gap-[25px] items-center'> 
-                {data.map((item: dataTypes, id: number) => (
+              <div className='min-w-auto sm:max-h-[700px] md:max-h-[850px] lg:max-h-[950px] xl:max-h-[500px] overflow-y-auto container flex flex-col gap-[25px] items-start'> 
+                {data.filter((item: dataTypes) => authId === item.UserId)
+               .sort().map((item: dataTypes, id: number) => (
                   //if different user then it will not render
                   authId === item.UserId && 
                   <div key={id} 
-                  className={`font-kaisei h-[73px] min-w-[180px] sm:px-[14px] lg:px-[19px] py-[12px] bg-[#F4E1C3] hover:scale-105 transition-transform 
+                  className={`font-kaisei h-[90px] min-w-[180px] sm:px-[14px] lg:px-[19px] py-[12px] bg-[#F4E1C3] hover:scale-105 transition-transform 
                   ease-in-out duration-150 cursor-pointer shadow-[#07B42] rounded-[25px] 
                   shadow-lg justify-evenly flex gap-[40px] text-center items-center 
-                  max-w-[290px]
+                  max-w-[290px] px-2 
                   ${clickMenu ? 'sm:gap-[50px] lg:gap-[40px]' : 'sm:gap-[50px]'} flex`}>
                     
                      <div className="flex-col justify-center items-start gap-[5px] flex">
-                         <div className="text-center text-yellow-900 text-[14px] sm:text-[16px] lg:text-lg font-normal" >{item.title}</div>
-                         <div className="text-center text-stone-500 text-[12px] sm:text-[12px] lg:text-[md] font-normal">{item.date}</div>
+                         <div className="text-start text-yellow-900 text-[14px] sm:text-[16px] lg:text-lg font-normal" >{item.title}</div>
+                         <div className="text-start text-stone-500 text-[12px] sm:text-[12px] lg:text-[md] font-normal">{item.date}</div>
                       </div>
 
                      {/**EDIT AND DELETE BUTTONS */}

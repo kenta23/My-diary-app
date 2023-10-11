@@ -10,8 +10,9 @@ import { saveAccount, updateProfileDisplay } from '@/States/SaveAccountLogin'
 import { accountInfoState } from '@/utils/reduxTypes'
 import { deleteObject, getDownloadURL, listAll, ref, uploadBytes } from 'firebase/storage'
 import AccountDeletionModal from '@/utils/AccountDeletionModal'
-import { deleteUser, signOut } from 'firebase/auth'
+import { deleteUser, signOut, updateEmail, updatePassword } from 'firebase/auth'
 import LogoutModal from '@/utils/LogoutModal'
+
 
 type documentType  = {
    Email: string,
@@ -25,7 +26,7 @@ type AccountUserType = {
   firstname: string | null | undefined,
   lastname: string | null | undefined,
   email: string | null | undefined,
-  password: string | null | undefined,
+  password?: string | null | undefined,
   profileDisplay?: string | null | undefined,
 }
 
@@ -44,11 +45,10 @@ const Profile = () => {
   const [visible, setVisible] = useState(false);
   const accountInfo: accountInfoState = useAppSelector(state => state.getAccount) ;
   //image file
-  const [imageFile, setImageFile] = useState< Blob | Uint8Array | ArrayBuffer>();
+  const [imageFile, setImageFile] = useState< Blob | Uint8Array | ArrayBuffer | File | null | undefined>();
   const [imageUrl, setImageUrl] = useState<string | null| undefined>(null);
   const [picture, setPicture] = useState<string>('');
-  //change information state
-  const [changes, setChanges] = useState<boolean>(false);
+
 
 
   const navigate = useNavigate(); 
@@ -63,7 +63,21 @@ const Profile = () => {
   const [ isOpen, setIsOpen ] = useState<boolean>(false);
   const [openLogoutDialog, setOpenLogoutDialog] = useState<boolean>(false);
 
+  useEffect(() => {
+    auth.onAuthStateChanged((user) => {
+        if (!user) {
+            navigate('/login')
+        }
+    })
+  }, [navigate])
+
+
+
   //store the account data in a state when reloading the page 
+
+  //reference to the firebase storage
+  const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${imageFile}`);
+
 useEffect(() => {
   const getData = async () => {
     const data = await getDocs(collectionData);
@@ -72,116 +86,148 @@ useEffect(() => {
      .map((doc) => doc.data() as documentType).filter(data => data.UserId === auth.currentUser?.uid);
      setUserData(userdata); //save all the user data info in local state
 
-     console.log('userdata', userdata);
+    
+    const userQuery = query(collectionData, where('UserId', '==', auth.currentUser?.uid));
+    const querySnapshot = await getDocs(userQuery);
+  
+    // Initialize an array to store the document references
+    const documentReferences: DocumentReference[] = [];
+  
+  
+    querySnapshot.forEach((doc) => {
+      // Push the document reference, not the document data
+      documentReferences.push(doc.ref);
+    });
+  
+    // Set the document references in state
+    setDocumentReference(documentReferences);
+
+    console.log('document reference', documentReferences);
+    console.log('userdata', userdata);
 
     if (userdata.length > 0) {
       userdata.forEach((data) => {
         dispatch(saveAccount(data)); //save all the user info in reducer state
       });
-      setChanges(false);
-    }
 
+    }
    if(accountInfo) {
       //setting default user data in inputs 
      setUpdateAccount({
       firstname: accountInfo.value.FirstName,
       lastname: accountInfo.value.LastName, 
       email: accountInfo.value.Email,
-      password: accountInfo.value.Password,
       profileDisplay: accountInfo.value.ProfileDisplay
    })
 
    setConfirmPassword(accountInfo.value.Password);
+
    console.log('update account', updateAccount);
-   console.log('account info updated', accountInfo)
+   console.log('account info state', accountInfo);
+
    }  
   }
  
     getData(); 
-}, [changes])
+    console.log(auth.currentUser?.email)
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [])
 
 
-useEffect(() => {
-  auth.onAuthStateChanged((user) => {
-      if (!user) {
-          navigate('/login')
-      }
-  })
-}, [navigate])
 
 
 async function formSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-  
-    const ref = collection(db, 'Users');
-    const userQuery = query(ref, where('UserId', '==', auth.currentUser?.uid));
-    const querySnapshot = await getDocs(userQuery);
-  
-    // Initialize an array to store the document references
-    const documentReferences: DocumentReference[] = [];
-  
-    querySnapshot.forEach((doc) => {
-      // Push the document reference, not the document data
-      documentReferences.push(doc.ref);
-      
-    });
-  
-    // Set the document references in state
-    setDocumentReference(documentReferences);
-  
-    await updateData(); 
 
+  //check first the input fields for validation
+ if(updateAccount.firstname === '' || updateAccount.lastname === '' || updateAccount.email === '') {
+  console.log('Please complete all the details');
+  dispatch(updateStatus('Please complete all the details'));
+  setVisible(true);
+
+  setTimeout(() => {
+    dispatch(clearStatus());
+    setVisible(false);
+  }, 2000) 
+}
+
+else if(updateAccount.password !== confirmPassword) {
+dispatch(updateStatus('New Password does not match'));
+  setVisible(true);
+
+  setTimeout(() => {
+    dispatch(clearStatus());
+    setVisible(false);
+  }, 1000)
+} 
+ else {
+  //execute the functions which actually to updates the data
+   await updateData(); 
+ }
 }
   
 async function updateData() {
+  const authUser = auth.currentUser;
+
   try {
-    // Upload the profile picture to Firebase Storage
-   if(imageFile) {
-    const storageRef = ref(store, `Users/${auth.currentUser?.uid}/${imageFile}`);
-    await uploadBytes(storageRef, imageFile); // Assuming fileUpload is a Blob or File object
+    if(imageFile) { //execute only this function when the image input has changed 
+       uploadBytes(storageRef, imageFile!); // Assuming fileUpload is a Blob or File object
+  
+      // Get the download URL of the uploaded image
+      const downloadURL = await getDownloadURL(storageRef);
+  
+      //add the download url to account state to only update the image file when submitted
+      dispatch(updateProfileDisplay(downloadURL));
+      setPicture(downloadURL);
 
-    // Get the download URL of the uploaded image
-    const downloadURL = await getDownloadURL(storageRef);
-
-    //add the download url to account statae to only update the image file when submitted
-    dispatch(updateProfileDisplay(downloadURL));
-    setPicture(downloadURL);
-
-    console.log('url', downloadURL);
-    console.log('Successfully uploaded new profile image');
-} 
-   //for firebase firestore datas
- if(updateAccount.firstname === '' || updateAccount.lastname === '' || updateAccount.email === '' || updateAccount.password === '' || confirmPassword === '') {
-    console.log('Please complete all the details');
-    dispatch(updateStatus('Please complete all the details'));
-    setVisible(true);
+      console.log('download url', downloadURL);
+      console.log('Successfully uploaded new profile image in accountInfo', accountInfo.value.ProfileDisplay);
+      console.log('picture', picture);
+    }
+    //update the email
+    if(authUser) {
+      if(updateAccount.email !== accountInfo.value.Email && updateAccount.email != '') {
+        updateEmail(authUser, updateAccount.email as string).then(() => {
+          dispatch(updateStatus('Email updated successfully'));
+          setVisible(true);
+        
+          setTimeout(() => {
+            dispatch(clearStatus());
+            setVisible(false);
+          }, 1000)
+        }).catch(err => {
+          console.log(err)
+        }) 
+   }
+    }
+  
+  //update the password 
+ if(authUser) {
+  if(confirmPassword != null && confirmPassword != undefined) {
+    updatePassword(authUser, confirmPassword).then(() => {
+      dispatch(updateStatus('Password updated successfully'));
+      setVisible(true);
 
     setTimeout(() => {
-      dispatch(clearStatus());
-      setVisible(false);
-    }, 2000) 
- }
-
-else if(updateAccount.password !== confirmPassword) {
-  dispatch(updateStatus('Please Confirm your password correctly'));
-    setVisible(true);
-
-    setTimeout(() => {
-      dispatch(clearStatus());
-      setVisible(false);
+       dispatch(clearStatus());
+       setVisible(false);
     }, 1000)
+    })
+     .catch(err => {
+    console.log(err)
+  })
+ }
 }
-else {
-  for (const docRef of documentReference) {
-    // Use the document reference to update the document
-    await updateDoc(docRef, {
-      FirstName: updateAccount.firstname || null,
-      LastName: updateAccount.lastname || null,
-      Email: updateAccount.email || null,
-      Password: updateAccount.password || null,
-      ProfileDisplay: picture
-    });
-  }
+
+for (const docRef of documentReference) {
+  // Use the document reference to update the document
+  await updateDoc(docRef, {
+    FirstName: updateAccount.firstname || null,
+    LastName: updateAccount.lastname || null,
+    Email: updateAccount.email || null,
+    ProfileDisplay: updateAccount.profileDisplay || picture
+  });
+}
 
   dispatch(updateStatus('Successfully updated'));
   setVisible(true);
@@ -190,9 +236,9 @@ else {
     dispatch(clearStatus());
     setVisible(false);
   }, 1000)
-}
-   setChanges(true);   
-  } catch(err) {
+} 
+
+  catch(err) {
     console.log(err);
    }
 }  
@@ -265,7 +311,6 @@ async function handleDelete() {
   }
 
   }
-
    function confirmDeletion() {
     dispatch(updateStatus('Deleting your account.....'));
     setVisible(true);
@@ -295,6 +340,7 @@ async function handleDelete() {
   }
 
 
+
 return (
 <div className='min-w-min bg-bg min-h-max '>
   <div className='w-full h-fit relative'>
@@ -305,8 +351,8 @@ return (
       {userData.map((data: documentType) => (
          <div className='flex flex-col items-center gap-[50px]' key={data.UserId}>
          <div className='profile gap-[27px] flex flex-col items-center mt-[112px] '>
-             <img src={imageUrl ? imageUrl : data.ProfileDisplay} alt="" className='cursor-pointer w-[116px] lg:w-[135px] h-auto rounded-[20%]'/>
-             <input type="file" className='p-2 bg-primary border-none rounded-[10px] text-dark cursor-pointer' id="fileInput"  accept="image/*" placeholder='Upload New Display Photo' onChange={handleImageFileChange}/>
+             <img src={imageUrl ? imageUrl : data.ProfileDisplay} alt="" className='cursor-pointer w-[116px] lg:w-[135px] h-auto rounded-full'/>
+             <input type="file" className='p-2 border border-primary rounded-[10px] text-dark cursor-pointer' id="fileInput"  accept="image/*" placeholder='Upload New Display Photo' onChange={handleImageFileChange}/>
              <h1 className='text-[18px] md:text-[25px] lg:text-[30px] uppercase font-medium leading-[24px]'>Profile</h1>
          </div>
 
@@ -346,7 +392,7 @@ return (
 
            <div className={`password ${changePass ? 'flex' : 'hidden'} relative pb-12 flex-col  gap-[22px]`}>
               <TextField
-                 label="Password"
+                 label="New Password"
                  defaultValue={data.Password}
                  color='success'
                  type='password'

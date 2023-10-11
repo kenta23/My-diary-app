@@ -4,6 +4,6 @@ export interface accountInfoState {
         LastName?: string | null | undefined,
         Email?: string | null | undefined,
         Password?: string | null | undefined,
-        ProfileDisplay?: string | null | undefined,
+        ProfileDisplay?: string,
     }
 }

@@ -7,7 +7,6 @@ import { Provider } from 'react-redux'
 import Login from './Starting page/Login.tsx'
 import Register from './Starting page/Register.tsx'
 import { BrowserRouter,Route, Routes  } from 'react-router-dom'
-import SucessfulRegistered from './Starting page/SucessfulRegistered.tsx'
 import PrivateRoutes from './PrivateRoute/PrivateRoutes.tsx'
 import Profile from './Components/Profile.tsx'
 import CreatePost from './Contents/CreatePost.tsx'
@@ -23,7 +22,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Routes >
                <Route element={<PrivateRoutes />}> {/*it only be accessed when the user account existed */}
                   <Route path='/' element={<App />}/>
-                  <Route path="/sucessful" element={<SucessfulRegistered/>} />
                   <Route path='/createnewpost' element={<CreatePost />} />
                   <Route path='/Profile' element={<Profile />} />
                </Route>
