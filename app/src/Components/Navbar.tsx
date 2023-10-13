@@ -27,7 +27,7 @@ const Navbar = () => {
         </div> 
       
         <div>
-             <h1 className='text-center text-logo font-inika md:text-[30px] lg:text-[35px] sm:text-[28px] text-[25px] font-[700]'> MyDiary</h1>
+             <h1 className='text-center text-logo font-inika md:text-[30px] lg:text-[35px] sm:text-[28px] text-[25px] font-[700]'> My Diary</h1>
         </div> 
 
         <div className='profileicon cursor-pointer visible lg:invisible'>
