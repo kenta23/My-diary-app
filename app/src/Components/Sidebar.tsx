@@ -106,7 +106,7 @@ const Sidebar = () => {
       
         <div className='w-full '>
               <div className='mt-[50px] gap-6 flex flex-col justify-center items-center'>
-                  <h1 className='text-center text-white font-inika sm:text-[25px] lg:text-[30px]'>{accountInfo.value.FirstName}'s Diary</h1>
+                  <h1 className='text-center text-white font-inika text-[27px] sm:text-[25px] lg:text-[30px]'>{accountInfo.value.FirstName}'s Diary</h1>
 
                   {/**READ ALL THE DIARIES HERE*/}
               <div className='min-w-auto sm:max-h-[700px] md:max-h-[850px] lg:max-h-[950px] xl:max-h-[500px] overflow-y-auto container flex flex-col gap-[25px] items-start'> 

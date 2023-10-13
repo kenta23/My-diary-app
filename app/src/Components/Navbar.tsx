@@ -6,8 +6,6 @@ import { open } from '@/States/menuSlice';
 import { useNavigate } from 'react-router-dom';
 import { accountInfoState } from '@/utils/reduxTypes';
 
-//console.log(sidebarCoords);
-
 
 
 const Navbar = () => {
@@ -16,7 +14,7 @@ const Navbar = () => {
   const accountInfo: accountInfoState = useAppSelector(state => state.getAccount);
 
   
-  //navigation
+
   const navigate = useNavigate();
 
 

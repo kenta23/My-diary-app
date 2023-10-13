@@ -114,7 +114,7 @@ const saveData = async (e: React.FormEvent <HTMLButtonElement>) => {
   }
 };
 
-function updatingStatus(status: string) {
+function updatingStatus<T>(status: T) {
     dispatch((updateStatus(status)));
     setVisible(true);
 
@@ -138,6 +138,7 @@ function updatingStatus(status: string) {
     //add the download url to the imageUrl state reducer
     dispatch(addUrl(downloadURL));
   } catch (err) {
+    updatingStatus('Image upload or data sending failed: '+err);
     console.error('Image upload or data sending failed:', err);
   }
 };
@@ -166,10 +167,9 @@ const createAccount = async () => {
         ProfileDisplay: downloadURL,
       })
   
-      
-      //ADD DATA TO THE JSON FILE
+  
       await uploadImage(); 
-    } 
+ } 
 
    catch(err) {
      if(err === 'auth/email-already-in-use') {
@@ -183,23 +183,33 @@ const createAccount = async () => {
    }
 }
  
- const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-   const file = e.target.files?.[0];
+const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
 
-   if (file) {
-    const reader = new FileReader();
+  if (file) {
+    // Define the allowed MIME types (file types) you want to accept
+    const allowedMimeTypes = ["image/jpeg", "image/png", "image/jpg", "image/HEIF"];
 
+    // Check if the selected file's MIME type is in the allowed list
+    if (allowedMimeTypes.includes(file.type)) {
+      const reader = new FileReader();
 
-    reader.onload = (e) => {
-      if(e.target) {
-        setImageUrl(e.target.result as string);
+      reader.onload = (e) => {
+        if (e.target) {
+          setImageUrl(e.target.result as string);
+        }
       }
-   }
 
-   reader.readAsDataURL(file);
-   setFileUpload(file);
-
- }
+      reader.readAsDataURL(file);
+      setFileUpload(file);
+    } else {
+      // Display an error message or handle the case where the file type is not allowed
+      alert("Only JPG and PNG files are allowed for upload.");
+      // Optionally, you can reset the input field to allow the user to select a different file
+      setImageUrl('');
+      e.target.value = '';
+    }
+  }
 };
 
 

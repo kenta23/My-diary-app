@@ -154,7 +154,7 @@ const Login = () => {
                 <div className='flex flex-col h-full justify-center items-center'>
                     <div className='flex flex-col justify-center items-center relative'>
                         <h1 className='font-kaisei text-[25px] sm:text-[28px] md:text-[30px] lg:text-[35px] z-10'>Welcome to <span className='text-logo font-inika font-semibold'>MyDiariz</span></h1>
-                        <span className='text-gray font-kaisei md:text-[20px]'>A simple diary app</span>
+                        <span className='text-gray font-kaisei md:text-[20px]'>Start taking notes every single day 😊</span>
 
                         <img src={book} alt="" className='w-[240px] absolute bottom-[5px] select-none left-[-80px] md:left-[-110px]'/>
                     </div>

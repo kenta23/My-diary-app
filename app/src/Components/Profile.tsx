@@ -10,7 +10,7 @@ import { saveAccount, updateProfileDisplay } from '@/States/SaveAccountLogin'
 import { accountInfoState } from '@/utils/reduxTypes'
 import { deleteObject, getDownloadURL, listAll, ref, uploadBytes } from 'firebase/storage'
 import AccountDeletionModal from '@/utils/AccountDeletionModal'
-import { deleteUser, signOut, updateEmail, updatePassword } from 'firebase/auth'
+import { AuthCredential, AuthError, EmailAuthProvider, deleteUser, reauthenticateWithCredential, signOut, updateEmail, updatePassword } from 'firebase/auth'
 import LogoutModal from '@/utils/LogoutModal'
 
 
@@ -102,8 +102,8 @@ useEffect(() => {
     // Set the document references in state
     setDocumentReference(documentReferences);
 
-    console.log('document reference', documentReferences);
-    console.log('userdata', userdata);
+    //console.log('document reference', documentReferences);
+    //console.log('userdata', userdata);
 
     if (userdata.length > 0) {
       userdata.forEach((data) => {
@@ -122,19 +122,24 @@ useEffect(() => {
 
    setConfirmPassword(accountInfo.value.Password);
 
-   console.log('update account', updateAccount);
-   console.log('account info state', accountInfo);
-
    }  
   }
  
     getData(); 
-    console.log(auth.currentUser?.email)
 // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [])
 
 
+//FOR UPDATING AND DISPLAYING STATUS 
+function displayStatus<T>(status: T) {
+  dispatch(updateStatus(status));
+  setVisible(true);
 
+  setTimeout(() => {
+     dispatch(clearStatus());
+     setVisible(false);
+  }, 2000)
+}
 
 async function formSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -142,30 +147,53 @@ async function formSubmit(e: React.FormEvent<HTMLFormElement>) {
   //check first the input fields for validation
  if(updateAccount.firstname === '' || updateAccount.lastname === '' || updateAccount.email === '') {
   console.log('Please complete all the details');
-  dispatch(updateStatus('Please complete all the details'));
-  setVisible(true);
-
-  setTimeout(() => {
-    dispatch(clearStatus());
-    setVisible(false);
-  }, 2000) 
+  displayStatus('Please complete all the details');
 }
 
 else if(updateAccount.password !== confirmPassword) {
-dispatch(updateStatus('New Password does not match'));
-  setVisible(true);
-
-  setTimeout(() => {
-    dispatch(clearStatus());
-    setVisible(false);
-  }, 1000)
+  displayStatus('New Password does not match');
 } 
  else {
   //execute the functions which actually to updates the data
    await updateData(); 
  }
 }
-  
+function promptForCredentials() {
+  const currentUser = auth.currentUser?.email;
+// Catch Firebase errors and handle them with a switch statement
+try {
+  // Your code that might generate Firebase errors goes here
+  if (currentUser && updateAccount.email !== accountInfo.value.Email) {
+    // Prompt the user for their password and return an AuthCredential.
+    const password = prompt('Enter your password');
+
+    if (password) {
+      return EmailAuthProvider.credential(currentUser, password);
+    } else {
+      // Handle the case where no password was provided.
+      throw new Error('Password is required');
+    }
+  } else {
+    // Handle the case where the user is not authenticated.
+    throw new Error('User is not authenticated');
+  }
+}   
+ catch (error: unknown) {
+    const authError = error as AuthError
+    switch (authError.code) {
+      case 'auth/wrong-password':
+        // Handle the wrong password error here
+       displayStatus('Wrong password');
+        break;
+      // Add more cases for other error codes as needed
+      default:
+        // Handle other error cases or rethrow the error
+        throw error;
+    }
+  }
+}
+
+
 async function updateData() {
   const authUser = auth.currentUser;
 
@@ -179,39 +207,55 @@ async function updateData() {
       //add the download url to account state to only update the image file when submitted
       dispatch(updateProfileDisplay(downloadURL));
       setPicture(downloadURL);
-
-      console.log('download url', downloadURL);
-      console.log('Successfully uploaded new profile image in accountInfo', accountInfo.value.ProfileDisplay);
-      console.log('picture', picture);
     }
     //update the email
-    if(authUser) {
+    if(authUser && updateAccount.email !== accountInfo.value.Email) {
+      const credential = promptForCredentials();
+
+      reauthenticateWithCredential(authUser, credential as AuthCredential).then(() => {
+        // User re-authenticated.
+        console.log('Successfully Re-authenticated');
+      }).catch((error: unknown) => {
+        // An error ocurred
+        // ...
+        displayStatus('error '+error);
+        console.log(error);
+      });
+
       if(updateAccount.email !== accountInfo.value.Email && updateAccount.email != '') {
-        updateEmail(authUser, updateAccount.email as string).then(() => {
-          dispatch(updateStatus('Email updated successfully'));
-          setVisible(true);
-        
-          setTimeout(() => {
-            dispatch(clearStatus());
-            setVisible(false);
-          }, 1000)
-        }).catch(err => {
-          console.log(err)
+        updateEmail(authUser, (updateAccount.email as string).toString().trim()).then(async () => {
+              //only update the email on database if changes occur in updating the email auth
+          for(const docRef of documentReference) {
+            await updateDoc(docRef, {
+              Email: updateAccount.email || null
+            })
+          }
+
+          displayStatus('Email updated successfully');
+        }).catch(error => {
+          const authError = error as AuthError
+          switch(authError.code) {
+            case 'auth/email-already-in-use':
+              displayStatus('Email already in use');
+            break;
+            case 'auth/email-already-exists':
+              displayStatus('Email already exists');
+            break;
+            case 'auth/user-not-found':
+              displayStatus('User not found');
+            break;
+            default: 
+             return;
+          }
         }) 
    }
-    }
+  } 
   
   //update the password 
  if(authUser) {
   if(confirmPassword != null && confirmPassword != undefined) {
     updatePassword(authUser, confirmPassword).then(() => {
-      dispatch(updateStatus('Password updated successfully'));
-      setVisible(true);
-
-    setTimeout(() => {
-       dispatch(clearStatus());
-       setVisible(false);
-    }, 1000)
+      displayStatus('Password updated successfully');
     })
      .catch(err => {
     console.log(err)
@@ -224,22 +268,16 @@ for (const docRef of documentReference) {
   await updateDoc(docRef, {
     FirstName: updateAccount.firstname || null,
     LastName: updateAccount.lastname || null,
-    Email: updateAccount.email || null,
+   // Email: updateAccount.email || null,
     ProfileDisplay: updateAccount.profileDisplay || picture
   });
 }
 
-  dispatch(updateStatus('Successfully updated'));
-  setVisible(true);
-
-  setTimeout(() => {
-    dispatch(clearStatus());
-    setVisible(false);
-  }, 1000)
+  displayStatus('Successfully updated');
 } 
 
   catch(err) {
-    console.log(err);
+    displayStatus('Error '+err);
    }
 }  
 
@@ -254,15 +292,23 @@ for (const docRef of documentReference) {
   function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
       const file = e.target.files?.[0]; // Use optional chaining to safely access files[0]
       if (file) {
-        const reader = new FileReader(); //filereader class to read the file uploaded and render to the image tag 
+        const FileTypes = ["image/jpeg", "image/png", "image/jpg", "image/HEIF"];
+        if(FileTypes.includes(file.type)) {
+          const reader = new FileReader(); //filereader class to read the file uploaded and render to the image tag 
 
-        reader.onload = (e) => {
-            if(e.target) {
-                setImageUrl(e.target.result as string); 
-            }
+          reader.onload = (e) => {
+              if(e.target) {
+                  setImageUrl(e.target.result as string); 
+              }
+          }
+          reader.readAsDataURL(file);
+          setImageFile(file);
         }
-        reader.readAsDataURL(file);
-        setImageFile(file);
+        else {
+          alert("Only JPG and PNG files are allowed for upload.");
+          setImageUrl('');
+          e.target.value = '';
+        }
       }
   }
 
@@ -279,7 +325,7 @@ async function handleDelete() {
        // Delete each item (file) in the folder
        await Promise.all(listResult.items.map(async (item) => {
          await deleteObject(item);
-         console.log(`Deleted ${item.fullPath}`);
+         //console.log(`Deleted ${item.fullPath}`);
        }));
 
      // Check if the user is logged in
@@ -298,10 +344,10 @@ async function handleDelete() {
      const user = auth.currentUser;
      if(user) {
       deleteUser(user).then(() => {
-        console.log('Successfully deleted account')
+        displayStatus("Successfilly deleted user");
       }).catch((err) => {
-        console.log('Something went wrong');
-        console.log(err);
+        displayStatus("Something went wrong "+err);
+        console.error(err);
       })
      }
   }
@@ -310,7 +356,7 @@ async function handleDelete() {
     console.log(err);
   }
 
-  }
+}
    function confirmDeletion() {
     dispatch(updateStatus('Deleting your account.....'));
     setVisible(true);
@@ -342,9 +388,9 @@ async function handleDelete() {
 
 
 return (
-<div className='min-w-min bg-bg min-h-max '>
-  <div className='w-full h-fit relative'>
-    <form onSubmit={formSubmit} className='font-kaisei w-full h-auto mb-5'>
+<div className='min-w-min bg-bg min-h-full m-0 p-0 box-border'>
+  <div className='w-full h-max  relative'>
+    <form onSubmit={formSubmit} className='font-kaisei w-full h-fit '>
         <ArrowLeft color='#EA9619' className='w-[26px] md:w-[30px] lg:w-[35px] h-auto object-cover mt-[30px] ml-[21px] cursor-pointer' onClick={() => navigate('/')}/>
          <h1 className='mt-[25px] ml-[21px] text-[20px] md:text-[25px] lg:text-[30px] font-bold'>Personal Information</h1>
 
@@ -417,14 +463,14 @@ return (
     
      
 
-         <div className='mt-[40px]'>
+         <div className='my-[40px]'>
               <button className='text-stone-600 text-lg font-normal w-[189px] lg:w-[220px] mx-auto h-[42px] lg:h-[50px] rounded-[50px] hover:bg-primary hover:text-white transition-all duration-150 ease-in-out border border-yellow-900 leading-none' type='button' onClick={() => setIsOpen(true)  }>Delete Account</button>
         </div>
      </div>
       ))}  
       
 
-       <div className='flex justify-between mx-8 mt-8'>
+       <div className='flex justify-between mx-8  pb-6'>
            <button className='w-[127px] h-[39px] pl-[9px] pr-2 pt-2 pb-[7px] bg-amber-500 rounded-[20px] justify-center items-center inline-flex text-white text-base font-medium leading-normal' type='submit'>Save Changes</button>
            <button className='w-[98px] h-[39px] pl-[22px] pr-[23px] pt-2 pb-[7px] bg-red-600 rounded-[20px] justify-center items-center inline-flex text-white text-base font-medium leading-normal' type='button' onClick={() => setOpenLogoutDialog(true)}><LogOut color='#0000' size={5}/>Logout</button>
        </div>
@@ -448,3 +494,5 @@ return (
 } 
     
 export default Profile
+
+
