@@ -167,7 +167,7 @@ try {
     // Prompt the user for their password and return an AuthCredential.
     const password = prompt('Enter your password');
 
-    if (password) {
+    if(password) {
       return EmailAuthProvider.credential(currentUser, password);
     } else {
       // Handle the case where no password was provided.
@@ -218,7 +218,6 @@ async function updateData() {
       }).catch((error: unknown) => {
         // An error ocurred
         // ...
-        displayStatus('error '+error);
         console.log(error);
       });
 
@@ -250,13 +249,15 @@ async function updateData() {
         }) 
    }
   } 
+
+
   
   //update the password 
- if(authUser) {
-  if(confirmPassword != null && confirmPassword != undefined) {
-    updatePassword(authUser, confirmPassword).then(() => {
-      displayStatus('Password updated successfully');
-    })
+ if(confirmPassword !== null && confirmPassword !== undefined) {
+    if(authUser) {
+     updatePassword(authUser, confirmPassword).then(() => {
+        displayStatus('Password updated successfully');
+     })
      .catch(err => {
     console.log(err)
   })

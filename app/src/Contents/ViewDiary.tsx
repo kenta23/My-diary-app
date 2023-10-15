@@ -50,7 +50,6 @@ const ViewDiary = () => {
     const status = useAppSelector((state) => state.getStatus);
     const dispatch = useAppDispatch();
     const defaultContext = useAppSelector((state) => state.getInput);
-    const CreateNewPost = useAppSelector(state => state.getPostStatus);
     const [newPostState, setNewPostState] = useState<boolean>(false);
     const profilepicture = useAppSelector(state => state.getAccount);
 
@@ -73,7 +72,6 @@ const ViewDiary = () => {
              const items = Object.values(rawData) as DiaryItem[]; // Cast to the DiaryItem[] type
              setData(items);
            }
-           console.log(data);
         })
       }
        RenderData()
@@ -102,8 +100,6 @@ const ViewDiary = () => {
     const handleEdit  = (item: string) => {
        setTempUid(item)
        setEdit(prev => !prev)
-
-       console.log(tempUid);
     }
 
     const updateDiary = async() => {
@@ -149,7 +145,7 @@ const ViewDiary = () => {
         setClickedEmoji(false);
      }
    
-   console.log(textInput)
+  
 
    //DELETE DATA 
    const removeDiary = async(userId: string | null) => {
@@ -163,8 +159,6 @@ const ViewDiary = () => {
       console.log(err);
     } 
   }
-console.log(CreateNewPost.value)
-
 
 return (
 <>

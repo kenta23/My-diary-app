@@ -136,13 +136,10 @@ const Login = () => {
          }))
     }
 
-    console.log(userCreds);
-    console.log(auth.currentUser?.uid);
-
     
 
   return (
-    <div className='bg-bg  w-full h-fit lg:h-screen  max-w-full min-w-fit'>
+    <div className='bg-bg w-full h-screen lg:h-screen  max-w-full min-w-fit'>
         <div className='flex flex-col lg:flex-row justify-between h-full w-full'>
             <div className='left lg:w-[40%] ' style={{background: 'linear-gradient(50deg, #C17351 8.04%, rgba(228, 179, 144, 0.53) 52.94%, rgba(245, 196, 181, 0.00) 103.83%)'}}>
                <div className='h-full w-full justify-center items-center flex'>

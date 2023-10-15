@@ -29,9 +29,6 @@ function App() {
    getData(); 
 // eslint-disable-next-line react-hooks/exhaustive-deps
 }, []);
-
-
-console.log(auth.currentUser?.uid);
  
 return (
    <div className="w-full relative min-h-full h-screen overflow-hidden bg-[#F4F0E9]">

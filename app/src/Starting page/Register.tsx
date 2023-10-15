@@ -214,7 +214,7 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
 
   return (
-    <div className='bg-bg w-full min-w-fit pb-5 min-h-[690px] lg:h-screen relative font-kaisei'>
+    <div className='bg-bg w-full min-w-fit pb-5 h-screen relative font-kaisei'>
        <div className='pt-[25px] ps-[15px] w-min h-min '>
           <ArrowLeft color='#EA9619' size={45} className='cursor-pointer' onClick={() => navigate('/')}/>
        </div>
@@ -290,7 +290,7 @@ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                 
          <div className='flex flex-col items-center gap-[45px] md:gap-[80px] '>
                  <div className='flex flex-col items-center gap-6'>
-                   <img src = {imageUrl || noprofile} alt="" className='w-[100px] sm:w-[130px] md:w-[135px] h-auto object-cover cursor-pointer'/>
+                   <img src = {imageUrl || noprofile} alt="" className='w-[100px] sm:w-[130px] md:w-[135px] h-auto object-cover rounded-full cursor-pointer'/>
                      <h1 className='uppercase text-[18px] leading-[24px] font-medium'>Upload Display Photo</h1>
                      <input type="file" className='p-2 bg-primary border-none rounded-[10px] text-dark cursor-pointer' id="fileInput"  accept="image/*" placeholder='Upload Display Photo' onChange={handleFileChange}/>
                  </div>

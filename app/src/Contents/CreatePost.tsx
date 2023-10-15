@@ -35,7 +35,6 @@ const CreatePost = () => {
   //reducers 
   const status = useAppSelector(state =>  state.getStatus);
   const dispatch = useAppDispatch();
-  const saveDiary = useAppSelector(state => state.getInput);
   const createPostStatus = useAppSelector(state => state.getPostStatus);
   const profilepicture = useAppSelector(state => state.getAccount);
 
@@ -108,8 +107,6 @@ const CreatePost = () => {
            diary: input.post,
            uid: uuid
         });
-         
-          console.log("Successfully Posted");
           dispatch(updateStatus("Successfully Posted"));
           dispatch(newPostStatus(true));
         
@@ -130,9 +127,6 @@ const CreatePost = () => {
       }
   }
 
-  console.log(saveDiary.value);
-
- 
 if(!createPostStatus.value) { 
  contentPost = ( 
  <form onSubmit={submitInput} className='mx-0 font-kaisei border border-[#745E3D] md:mr-0 lg:mr-[335px] xl:mr-[360px] w-max sm:w-[450px] md:w-[550px] lg:w-[700px] xl:w-[850px] h-[495px] '>
