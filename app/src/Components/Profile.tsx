@@ -144,7 +144,6 @@ function displayStatus<T>(status: T) {
 async function formSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-  //check first the input fields for validation
  if(updateAccount.firstname === '' || updateAccount.lastname === '' || updateAccount.email === '') {
   console.log('Please complete all the details');
   displayStatus('Please complete all the details');
@@ -160,9 +159,9 @@ else if(updateAccount.password !== confirmPassword) {
 }
 function promptForCredentials() {
   const currentUser = auth.currentUser?.email;
-// Catch Firebase errors and handle them with a switch statement
+
 try {
-  // Your code that might generate Firebase errors goes here
+ 
   if (currentUser && updateAccount.email !== accountInfo.value.Email) {
     // Prompt the user for their password and return an AuthCredential.
     const password = prompt('Enter your password');
@@ -291,7 +290,7 @@ for (const docRef of documentReference) {
   }
 
   function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-      const file = e.target.files?.[0]; // Use optional chaining to safely access files[0]
+      const file = e.target.files?.[0]; 
       if (file) {
         const FileTypes = ["image/jpeg", "image/png", "image/jpg", "image/HEIF"];
         if(FileTypes.includes(file.type)) {
